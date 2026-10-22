@@ -2,95 +2,178 @@
 'use strict';
 const $=s=>document.querySelector(s), all=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const key='vuon-truyen-v1';
+const main=$('#main');
+const key='vuon-truyen-v2';
 let saved={};try{saved=JSON.parse(localStorage.getItem(key)||'{}')||{}}catch{}
-const state={name:'Bạn nhỏ',age:'all',favorites:[],progress:{},results:{},history:[],usage:{},limit:0,bedtime:false,...saved};
-if(!Array.isArray(state.favorites))state.favorites=[];
-let category='Tất cả',query='',ageFilter='all',route='home',current=null,scene=0,playing=false,speed=1,utterance=null,fallbackTimer=null,token=0,quizIndex=0,quizScore=0,quizTried=false,quizLocked=false,toastTimer;
-const reader=$('#reader'),main=$('#main');
-let musicEnabled=true;
-const movieMusic=(()=>{let ctx,gain,timer,step=0;const notes=[261.63,329.63,392,523.25,440,392,329.63,293.66];return{start(){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;ctx=ctx||new AC();if(!gain){gain=ctx.createGain();gain.gain.value=.035;gain.connect(ctx.destination)}ctx.resume().catch(()=>{});if(timer)return;const note=()=>{const t=ctx.currentTime,o=ctx.createOscillator(),v=ctx.createGain();o.type='sine';o.frequency.value=notes[step++%notes.length];v.gain.setValueAtTime(0,t);v.gain.linearRampToValueAtTime(.5,t+.05);v.gain.exponentialRampToValueAtTime(.001,t+1.5);o.connect(v);v.connect(gain);o.start(t);o.stop(t+1.6)};note();timer=setInterval(note,780)}catch{}},stop(){clearInterval(timer);timer=null;if(ctx)ctx.suspend().catch(()=>{})}}})();
-function persist(){try{localStorage.setItem(key,JSON.stringify(state))}catch{toast('Trình duyệt chưa cho phép lưu tiến độ.')}}
-function toast(message){$('#toast').textContent=message;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),3500)}
-function today(){const d=new Date();return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`}
-function usage(){return Number(state.usage[today()]||0)}
-function limited(){return state.limit>0&&usage()>=state.limit*60}
-function getStory(id){return STORIES.find(s=>s.id===id)}
-function animal(type,x=0,y=0,scale=1){
-let a='';
-if(type==='rabbit')a='<ellipse cx="-16" cy="-93" rx="12" ry="38" fill="#fff9e9" transform="rotate(-12 -16 -93)"/><ellipse cx="15" cy="-95" rx="11" ry="37" fill="#fff9e9" transform="rotate(10 15 -95)"/><ellipse cx="-16" cy="-93" rx="5" ry="27" fill="#dfb6a7"/><ellipse cx="15" cy="-95" rx="4" ry="26" fill="#dfb6a7"/><circle cx="31" cy="-8" r="14" fill="#fff9e9"/><ellipse cy="-15" rx="32" ry="37" fill="#f9efda"/><circle cy="-57" r="30" fill="#fff9e9"/><ellipse cx="-18" cy="18" rx="17" ry="8" fill="#fff9e9"/><ellipse cx="15" cy="18" rx="17" ry="8" fill="#fff9e9"/><path d="M-24-30Q0-18 25-30L20-13Q0-4-20-13Z" fill="#b2be88"/><circle cx="-10" cy="-60" r="2.5" fill="#3f4934"/><circle cx="11" cy="-60" r="2.5" fill="#3f4934"/><path d="m-3-50 6 0-3 4Z" fill="#b47d6d"/><ellipse cx="-18" cy="-49" rx="6" ry="3" fill="#ecc8b2"/><ellipse cx="18" cy="-49" rx="6" ry="3" fill="#ecc8b2"/>';
-else if(type==='turtle')a='<ellipse cy="-8" rx="40" ry="27" fill="#839861"/><path d="M-30-8q30-39 60 0M0-34v28M-20-28-13-8M20-28 13-8" fill="none" stroke="#aab77d" stroke-width="3"/><ellipse cx="42" cy="-7" rx="17" ry="14" fill="#b7bf86"/><circle cx="47" cy="-11" r="2.5" fill="#3f4934"/><path d="M46-2q5 3 8-1" fill="none" stroke="#657b4b" stroke-width="2"/><ellipse cx="-22" cy="17" rx="11" ry="7" fill="#a3b378"/><ellipse cx="22" cy="17" rx="11" ry="7" fill="#a3b378"/>';
-else if(['bird','crow','duck','chick'].includes(type)){const c=type==='crow'?'#637773':type==='duck'?'#faf1d8':type==='chick'?'#edce78':'#faf7e8';a=`<ellipse cy="-13" rx="32" ry="29" fill="${c}"/><circle cx="17" cy="-43" r="21" fill="${c}"/><path d="M34-46 55-38 34-32Z" fill="#d5a455"/><path d="M-31-17-48-32-39-4Z" fill="${c}"/><ellipse cx="-4" cy="-13" rx="19" ry="15" fill="${type==='crow'?'#4b605b':'#dddcb8'}" transform="rotate(-20)"/><circle cx="23" cy="-46" r="2.6" fill="#344a3b"/><path d="M-10 12v11m-7 0h14m18-10v10m-7 0h14" stroke="#c09c5a" stroke-width="3" stroke-linecap="round"/>`}
-else if(type==='fox')a='<path d="M-30-17Q-80-72-75-17Q-66 19-23 9" fill="#bd794e"/><path d="M-75-17q1-20 6-23l14 31" fill="#f7ead0"/><ellipse cy="-12" rx="30" ry="34" fill="#c68b59"/><path d="M-28-66-28-102-5-80 22-100 31-62 15-34-15-34Z" fill="#c68b59"/><path d="m-25-64 25 15 28-15L15-35-13-35Z" fill="#f8ecd4"/><circle cx="-12" cy="-67" r="2.5" fill="#3b4838"/><circle cx="13" cy="-67" r="2.5" fill="#3b4838"/><path d="m-5-49 10 0-5 6Z" fill="#3b4838"/><path d="M-18 8v15M17 8v15" stroke="#8c6548" stroke-width="10" stroke-linecap="round"/>';
-else if(type==='ant')a='<circle cx="-22" cy="-3" r="14" fill="#8c6854"/><circle cy="-5" r="11" fill="#a27c5c"/><circle cx="20" cy="-13" r="15" fill="#ad8563"/><path d="M16-25 10-36m17 12 8-12M-18 8-25 22M0 5 4 22M17 0 23 19" stroke="#816449" stroke-width="3" stroke-linecap="round"/><circle cx="26" cy="-17" r="2" fill="#344536"/>';
-else if(type==='mouse')a='<path d="M-24 4Q-68 29-49-2" fill="none" stroke="#b19b8b" stroke-width="4"/><ellipse cy="-8" rx="27" ry="23" fill="#b4ac9a"/><circle cx="19" cy="-35" r="20" fill="#c8bfaa"/><circle cx="5" cy="-51" r="13" fill="#c8bfaa"/><circle cx="5" cy="-51" r="8" fill="#d9b9ab"/><circle cx="31" cy="-35" r="2" fill="#374734"/><circle cx="40" cy="-28" r="4" fill="#b78f82"/>';
-else {const c=type==='pig'?'#dda995':type==='lion'?'#d3ab62':'#b59b77';a=`${type==='lion'?'<circle cy="-57" r="42" fill="#b88a4f"/>':''}<circle cx="-22" cy="-80" r="13" fill="${c}"/><circle cx="22" cy="-80" r="13" fill="${c}"/><ellipse cy="-12" rx="34" ry="37" fill="${c}"/><circle cy="-55" r="33" fill="${c}"/><ellipse cy="-43" rx="17" ry="13" fill="${type==='pig'?'#c98f81':'#e6d2ad'}"/><circle cx="-12" cy="-60" r="2.7" fill="#3f4934"/><circle cx="12" cy="-60" r="2.7" fill="#3f4934"/>${type==='pig'?'<circle cx="-6" cy="-44" r="2" fill="#916a5d"/><circle cx="6" cy="-44" r="2" fill="#916a5d"/>':'<ellipse cy="-47" rx="5" ry="3.5" fill="#654f3d"/><path d="M0-44v5m-6 0q6 6 12 0" fill="none" stroke="#654f3d" stroke-width="1.5"/>'}<ellipse cx="-21" cy="18" rx="15" ry="8" fill="${c}"/><ellipse cx="21" cy="18" rx="15" ry="8" fill="${c}"/><path d="M-28-23Q0-10 28-23L24-7Q0 1-24-7Z" fill="#a7b490"/>`}
-return `<g transform="translate(${x} ${y}) scale(${scale})"><g class="animal">${a}</g></g>`;
-}
-function art(s,hero=false,sceneNum=0){const night=s.id==='tho-trang'||(s.id==='hat-mam'&&sceneNum===3);const bg=night?'#d6dcee':s.color;return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 350" role="img" aria-label="Minh họa ${esc(s.title)}"><rect width="600" height="350" fill="${bg}"/><circle class="sunshine" cx="${hero?430:475}" cy="75" r="${hero?39:30}" fill="${night?'#fff8d6':'#f4d999'}"/><g fill="#fff9e9" opacity=".5"><ellipse cx="173" cy="67" rx="43" ry="12"/><ellipse cx="190" cy="58" rx="23" ry="18"/><ellipse cx="365" cy="112" rx="34" ry="10"/></g><path d="M0 237Q140 120 290 222T600 184V350H0Z" fill="#bccba0" opacity=".6"/><path d="M0 281Q142 178 295 259T600 218V350H0Z" fill="#a5b88a"/><path d="M0 303Q190 236 340 297T600 268V350H0Z" fill="#d0d8b0"/><path d="M254 350q-52-64 31-94t40-34" fill="none" stroke="#e5ddbb" stroke-width="31" opacity=".9"/><g stroke="#8c9d73" stroke-width="5" stroke-linecap="round"><path d="M64 299V137m0 68-25-24m25-2 23-29M533 267V115m0 54-32-23m32 0 19-23"/></g><g fill="#879e71"><ellipse cx="60" cy="124" rx="38" ry="61"/><ellipse cx="32" cy="159" rx="27" ry="38"/><ellipse cx="91" cy="154" rx="29" ry="40"/><ellipse cx="525" cy="92" rx="32" ry="58"/><ellipse cx="551" cy="128" rx="28" ry="43"/><ellipse cx="502" cy="127" rx="24" ry="36"/></g><g fill="#b1c294"><ellipse cx="59" cy="107" rx="24" ry="38"/><ellipse cx="527" cy="79" rx="21" ry="39"/></g>${s.id==='cao-nho'?'<g fill="#9c91b0"><circle cx="380" cy="123" r="10"/><circle cx="396" cy="123" r="10"/><circle cx="388" cy="139" r="10"/><circle cx="388" cy="155" r="8"/></g><path d="M385 109q-3-25 24-19" fill="none" stroke="#7d986c" stroke-width="4"/>':''}${s.id==='qua-nuoc'?'<path d="M350 230h43l-5 70q-18 12-34 0Z" fill="#c3a485"/><path d="M354 284h34v14q-18 10-34 0Z" fill="#a8c5c3"/>':''}${s.id==='ba-chu-heo'?'<path d="M364 206h80v85h-80Z" fill="#d6a38b"/><path d="m352 208 52-47 51 47Z" fill="#b48b70"/><path d="M392 250h23v41h-23" fill="#8b8f6b"/><path d="M368 227h70m-70 16h70m-70 16h70" stroke="#ecd0b2" stroke-width="2"/>':''}${animal(s.animal,hero?270:230,hero?283:286,hero?1.4:1.12)}${animal(s.friend,hero?410:395,hero?300:300,hero?1:.72)}${hero?'<g transform="translate(252 276) rotate(-8)"><path d="M0 0q30-12 60 0v40q-30-12-60 0Z" fill="#fff8e5"/><path d="M60 0q30-12 60 0v40q-30-12-60 0Z" fill="#eee4c8"/><path d="M60 0v40" stroke="#c8b893" stroke-width="2"/><path d="M13 10h32m-32 8h32m-32 8h24m43-16h25m-25 8h30m-30 8h24" stroke="#c5bd9e" stroke-width="2"/></g>':''}<g fill="#6f8d5c" opacity=".7"><path d="M25 350q-2-24-17-33 24 2 28 33m-9 0q10-35 22-36-1 21-13 36M572 350q-4-31-21-38 24 0 31 38m-5 0q7-25 20-30-1 20-12 30"/></g><g fill="#f9efd1"><circle cx="134" cy="301" r="4"/><circle cx="461" cy="318" r="4"/><circle cx="105" cy="329" r="3"/></g><g fill="#ddba80"><circle cx="134" cy="301" r="1.5"/><circle cx="461" cy="318" r="1.5"/></g><g fill="#7b9466"><ellipse cx="160" cy="290" rx="5" ry="11" transform="rotate(-35 160 290)"/><ellipse cx="468" cy="273" rx="5" ry="10" transform="rotate(35 468 273)"/></g></svg>`}
-function stats(){return {read:Object.values(state.progress).filter(p=>p.completed).length,stars:Object.values(state.results).reduce((a,r)=>a+r.stars,0),quizzes:Object.keys(state.results).length}}
-function card(s){const favorite=state.favorites.includes(s.id),r=state.results[s.id];return `<article class="story-card"><div class="cover" style="--cover:${s.color}"><button class="open-story" data-open="${s.id}" aria-label="Đọc ${esc(s.title)}">${art(s)}</button><button class="fav ${favorite?'saved':''}" data-fav="${s.id}" aria-label="${favorite?'Bỏ yêu thích':'Yêu thích'} ${esc(s.title)}" aria-pressed="${favorite}">${favorite?'♥':'♡'}</button><span class="age-pill">${s.age===3?'3+':'6+'} tuổi</span></div><div class="card-content"><div class="category">${s.category} <span>·</span> ${s.tag}</div><button class="title-btn" data-open="${s.id}">${s.title}</button><p>${s.desc}</p><div class="card-bottom"><span>◷ ${s.minutes} phút <span style="padding:0 5px">·</span> ${s.scenes.length} cảnh</span>${r?`<span class="stars" aria-label="${r.stars} sao">${'★'.repeat(r.stars)}${'☆'.repeat(3-r.stars)}</span>`:`<button class="listen-mini" data-open="${s.id}" aria-label="Mở ${esc(s.title)}">▶</button>`}</div></div></article>`}
-function header(title,desc){return `<div class="page-heading"><span class="eyebrow">VƯỜN TRUYỆN NHỎ</span><h1>${title}</h1><p>${desc}</p></div>`}
-function empty(icon,title,desc){return `<div class="empty"><span class="big">${icon}</span><h3>${title}</h3><p>${desc}</p><a href="#home" class="primary">Khám phá thư viện →</a></div>`}
-function render(){
-route=['favorites','awards','parents'].includes(location.hash.slice(1))?location.hash.slice(1):'home';
-const labels={home:'Thư viện truyện',favorites:'Truyện yêu thích',awards:'Khu vườn thành tích',parents:'Góc phụ huynh'};
-$('#breadcrumb').textContent=labels[route];$('#profileLabel').textContent=state.name;$('#favCount').textContent=state.favorites.length;
-all('[data-nav]').forEach(a=>{a.classList.toggle('active',a.dataset.nav===route);if(a.dataset.nav===route)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
-const st=stats();
-if(route==='home'){
-const featured=STORIES[0];const last=state.history.map(h=>getStory(h.id)).find(s=>s&&state.progress[s.id]&&!state.progress[s.id].completed);
-main.innerHTML=`<section class="hero"><div class="hero-copy"><span class="eyebrow">GIEO TRÍ TƯỞNG TƯỢNG · NUÔI TÂM HỒN</span><h1>Một câu chuyện,<br><em>ngàn điều hay.</em></h1><p>Cùng bé bước vào thế giới của những người bạn nhỏ,<br>lắng nghe và khám phá điều tốt đẹp mỗi ngày.</p><button class="primary" data-open="${featured.id}"><span>▶</span> Nghe một câu chuyện <span>↗</span></button></div><div class="hero-art">${art(featured,true)}<div class="floating-label"><span>✦</span><span>Hôm nay mình học <b>sự kiên trì</b></span></div></div></section><section class="welcome"><div><h2>Chào ${esc(state.name)}, mình đọc gì nhỉ? <span style="font-size:19px">☀</span></h2><p>Những câu chuyện nhỏ, chờ bé khám phá.</p></div><div class="daily-stats"><span><strong>${st.read}</strong> truyện đã đọc</span><span><strong>${st.stars} ☆</strong> sao của bé</span></div></section><section aria-label="Thư viện truyện"><div class="explore-controls"><div class="chips">${['Tất cả','Ngụ ngôn','Cổ tích','Tình bạn','Trước giờ ngủ'].map(c=>`<button class="chip ${category===c?'selected':''}" data-category="${c}" aria-pressed="${category===c}">${c==='Trước giờ ngủ'?'☾ ':''}${c}</button>`).join('')}</div><label class="search"><span aria-hidden="true">⌕</span><input id="search" aria-label="Tìm truyện" placeholder="Tìm một câu chuyện…" value="${esc(query)}"></label></div><div class="filter-row"><span id="resultCount"></span><label>Độ tuổi <select id="ageFilter" aria-label="Lọc độ tuổi"><option value="all">Tất cả độ tuổi</option><option value="3">3–5 tuổi</option><option value="6">6–8 tuổi</option><option value="9">9 tuổi trở lên</option></select></label></div><div class="grid" id="storyGrid"></div></section>${last?`<section class="continue"><span class="continue-icon">📖</span><div><h3>Một câu chuyện đang chờ bé…</h3><p>${last.title} · Tiếp tục từ cảnh ${(state.progress[last.id].scene||0)+1}</p></div><button class="text-btn" data-open="${last.id}">Đọc tiếp →</button></section>`:`<section class="continue"><span class="continue-icon">☾</span><div><h3>Khép ngày dài bằng một câu chuyện</h3><p>Những lời kể dịu dàng cho giờ đi ngủ của bé.</p></div><button class="text-btn" data-bedtime>Khám phá →</button></section>`}`;
-$('#search').addEventListener('input',e=>{query=e.target.value;renderGrid()});$('#ageFilter').value=ageFilter;$('#ageFilter').onchange=e=>{ageFilter=e.target.value;renderGrid()};renderGrid();
-}else if(route==='favorites'){
-const list=STORIES.filter(s=>state.favorites.includes(s.id));main.innerHTML=header('Những câu chuyện bé thương','Lưu lại một câu chuyện hay, để niềm vui luôn ở thật gần.')+`<div class="grid">${list.length?list.map(card).join(''):empty('♡','Kệ sách đang chờ bé','Chạm vào trái tim trên bìa truyện để lưu truyện yêu thích.')}</div>`;
-}else if(route==='awards'){
-const badges=[['🌱','Hạt mầm tò mò','Đọc xong câu chuyện đầu tiên',st.read>=1],['🌿','Người bạn của sách','Đọc xong 5 câu chuyện',st.read>=5],['⭐','Ngôi sao chăm chỉ','Sưu tập ít nhất 9 sao',st.stars>=9]];
-main.innerHTML=header('Khu vườn thành tích','Mỗi câu chuyện là một hạt mầm. Nhìn xem khu vườn của bé đã lớn lên thế nào!')+`<div class="stats-grid"><div class="stat-card">📚<strong>${st.read}</strong><span>truyện đã đọc xong</span></div><div class="stat-card">☆<strong>${st.stars}</strong><span>ngôi sao sưu tập</span></div><div class="stat-card">✎<strong>${st.quizzes}</strong><span>bài khám phá đã làm</span></div></div><div class="badge-grid">${badges.map(([i,t,d,ok])=>`<article class="badge ${ok?'':'locked'}"><span>${i}</span><h3>${t}</h3><p>${d}</p><small>${ok?'Đã mở khóa':'Đang gieo mầm…'}</small></article>`).join('')}</div><section class="panel" style="margin-top:25px"><h3>Những ngôi sao của bé</h3>${st.quizzes?Object.entries(state.results).filter(([id])=>getStory(id)).map(([id,r])=>`<div class="history-row"><span>${getStory(id).title}</span><span style="color:#c3a052">${'★'.repeat(r.stars)}${'☆'.repeat(3-r.stars)}</span><button class="text-btn" data-open="${id}">Đọc lại →</button></div>`).join(''):'<p>Hoàn thành câu hỏi sau mỗi truyện để nhận những ngôi sao đầu tiên.</p>'}</section>`;
-}else{
-main.innerHTML=header('Cùng con lớn lên','Một góc nhỏ để cha mẹ đồng hành cùng hành trình đọc của con.')+`<div class="stats-grid"><div class="stat-card">◷<strong>${Math.floor(usage()/60)}</strong><span>phút nghe hôm nay</span></div><div class="stat-card">📖<strong>${st.read}/${STORIES.length}</strong><span>truyện đã đọc xong</span></div><div class="stat-card">♡<strong>${state.favorites.length}</strong><span>truyện yêu thích</span></div></div><section class="panel"><h3>Nhịp đọc của gia đình</h3><div class="setting-row"><div><label for="limit">Giới hạn thời gian nghe mỗi ngày</label><p style="margin:5px 0 0;font-size:10px">Tự dừng lời kể khi đủ thời gian đã chọn.</p></div><select id="limit"><option value="0">Không giới hạn</option><option value="10">10 phút</option><option value="15">15 phút</option><option value="20">20 phút</option><option value="30">30 phút</option></select></div><div class="setting-row"><div><label for="night">Chế độ trước giờ ngủ</label><p style="margin:5px 0 0;font-size:10px">Làm dịu khung đọc và đặt tốc độ kể chậm hơn.</p></div><input id="night" type="checkbox" ${state.bedtime?'checked':''} style="accent-color:#315d49;width:20px;height:20px"></div><div class="setting-row"><div><label>Hồ sơ bạn nhỏ</label><p style="margin:5px 0 0;font-size:10px">${esc(state.name)} · ${state.age==='all'?'Chưa chọn độ tuổi':state.age==='3'?'3–5 tuổi':state.age==='6'?'6–8 tuổi':'9 tuổi trở lên'}</p></div><button class="text-btn" id="editProfile">Chỉnh sửa →</button></div></section><section class="panel"><h3>Gần đây bé đã đọc</h3>${state.history.length?state.history.slice(0,8).filter(h=>getStory(h.id)).map(h=>{let s=getStory(h.id),p=state.progress[h.id];return `<div class="history-row"><div>${s.title}<small style="display:block;margin-top:6px">${new Date(h.at).toLocaleDateString('vi-VN')} · ${p?.completed?'Đã đọc xong':`Đến cảnh ${(p?.scene||0)+1}/${s.scenes.length}`}</small></div><button class="text-btn" data-open="${s.id}">Mở truyện →</button></div>`}).join(''):'<p>Chưa có lịch sử đọc. Cùng con chọn câu chuyện đầu tiên nhé.</p>'}</section><section class="panel"><h3>Một chút thông tin dành cho cha mẹ</h3><p>12 truyện được biên soạn ngắn, với kết thúc nhẹ nhàng và câu hỏi gợi mở. Ba truyện “Hạt Mầm Bé Xíu”, “Thỏ Con Chào Mặt Trăng” và “Gấu Con Biết Xin Lỗi” là truyện mới của thư viện.</p><p>Giọng kể sử dụng giọng tiếng Việt có sẵn trên thiết bị. Nếu thiết bị chưa có giọng phù hợp, bé vẫn có thể đọc chữ và chuyển cảnh. Các truyện có hoạt hình 2D theo cảnh: nhân vật diễn xuất, tương tác, khung hình chuyển động và phụ đề. Nhạc nền được tạo trực tiếp trên trình duyệt.</p><p>Hồ sơ, thời gian và tiến độ chỉ lưu ở trình duyệt này, không đồng bộ giữa thiết bị. Góc phụ huynh là công cụ hỗ trợ gia đình, không có khóa bảo vệ bằng tài khoản.</p></section>`;
-$('#limit').value=state.limit;$('#limit').onchange=e=>{state.limit=Number(e.target.value);persist();toast('Đã lưu thời gian nghe của gia đình.')};$('#night').onchange=e=>{state.bedtime=e.target.checked;persist();toast('Đã cập nhật chế độ trước giờ ngủ.')};$('#editProfile').onclick=showProfile;
-}
-bindCards();
-}
-function renderGrid(){const needle=query.trim().toLocaleLowerCase('vi');const list=STORIES.filter(s=>(category==='Tất cả'||s.category===category)&&(ageFilter==='all'||s.age<=Number(ageFilter))&&`${s.title} ${s.tag} ${s.category}`.toLocaleLowerCase('vi').includes(needle));$('#resultCount').textContent=`${list.length} câu chuyện dành cho bé`;$('#storyGrid').innerHTML=list.length?list.map(card).join(''):empty('⌕','Chưa tìm thấy câu chuyện','Thử một từ khóa khác hoặc đổi bộ lọc nhé.');bindCards($('#storyGrid'))}
-function bindCards(root=main){root.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openStory(b.dataset.open));root.querySelectorAll('[data-fav]').forEach(b=>b.onclick=()=>{let id=b.dataset.fav;const exists=state.favorites.includes(id);state.favorites=exists?state.favorites.filter(x=>x!==id):[...state.favorites,id];persist();toast(exists?'Đã bỏ khỏi truyện yêu thích.':'Đã thêm vào truyện yêu thích.');if(route==='home'){renderGrid();$('#favCount').textContent=state.favorites.length}else render()});root.querySelectorAll('[data-category]').forEach(b=>b.onclick=()=>{category=b.dataset.category;render()});root.querySelectorAll('[data-bedtime]').forEach(b=>b.onclick=()=>{category='Trước giờ ngủ';render();$('#storyGrid').scrollIntoView({behavior:'smooth',block:'start'})})}
-function showProfile(){$('#childName').value=state.name==='Bạn nhỏ'?'':state.name;$('#childAge').value=state.age;$('#profileDialog').showModal()}
-$('#profileBtn').onclick=showProfile;$('.close-dialog').onclick=()=>$('#profileDialog').close();$('#profileForm').onsubmit=e=>{e.preventDefault();state.name=$('#childName').value.trim()||'Bạn nhỏ';state.age=$('#childAge').value;ageFilter=state.age;persist();$('#profileDialog').close();render();toast(`Chào ${state.name}, cùng khám phá nhé!`)};
-function stop(){token++;playing=false;movieMusic.stop();clearTimeout(fallbackTimer);if(window.speechSynthesis)window.speechSynthesis.cancel();utterance=null;syncPlay()}
-function syncPlay(){reader.classList.toggle('playing',playing);const stage=$('.movie-stage');if(stage)stage.classList.toggle('is-playing',playing);const b=$('#play');if(b){b.textContent=playing?'Ⅱ':'▶';b.setAttribute('aria-label',playing?'Tạm dừng hoạt hình':'Phát hoạt hình')}}
-function saveProgress(completed=false){const old=state.progress[current.id]||{};state.progress[current.id]={...old,scene,completed:completed||old.completed||false};persist()}
-function openStory(id){stop();current=getStory(id);if(!current)return;scene=state.progress[id]?.completed?0:Math.min(state.progress[id]?.scene||0,current.scenes.length-1);speed=state.bedtime?.8:1;state.history=[{id,at:new Date().toISOString()},...state.history.filter(h=>h.id!==id)].slice(0,30);saveProgress();renderReader();reader.showModal();play()}
-function renderReader(){
- reader.classList.toggle('night',state.bedtime);
- const [title,text]=current.scenes[scene];
- const duration=Math.max(14,text.split(/\s+/).length*.45/speed);
- reader.style.setProperty('--scene-duration',duration+'s');
- $('#readerContent').innerHTML=`<div class="reader-head"><div><h2>${current.title}</h2><small>${current.category} · Cảnh ${scene+1}/${current.scenes.length}</small></div><button class="icon-btn" id="closeReader" aria-label="Đóng truyện">×</button></div><div class="stage movie-stage">${window.renderMovieScene(current,scene,animal)}<div class="movie-subtitle">${text}</div></div><div class="movie-play-hint">Nhấn ▶ để xem nhân vật chuyển động và tự chuyển cảnh</div><div class="player-controls"><button class="small-control" id="prevScene" aria-label="Cảnh trước" ${scene===0?'disabled':''}>‹</button><button class="main-play" id="play" aria-label="Phát hoạt hình">▶</button><button class="small-control" id="nextScene" aria-label="${scene===current.scenes.length-1?'Xem xong':'Cảnh sau'}">${scene===current.scenes.length-1?'✓':'›'}</button><select id="speed" aria-label="Tốc độ lời kể"><option value="0.8">0,8× · Chậm</option><option value="1">1× · Vừa</option><option value="1.2">1,2× · Nhanh</option></select><button class="small-control" id="musicToggle" aria-label="${musicEnabled?'Tắt':'Bật'} nhạc nền" aria-pressed="${musicEnabled}">${musicEnabled?'♫':'♪'}</button><button class="small-control" id="fullscreen" aria-label="Toàn màn hình">⛶</button></div><div class="player-progress" aria-hidden="true"><span></span></div><div class="scene-dots" aria-label="Chọn cảnh">${current.scenes.map((_,i)=>`<button data-scene="${i}" class="${i===scene?'on':''}" aria-label="Cảnh ${i+1}" ${i===scene?'aria-current="step"':''}>${i+1}</button>`).join('')}</div><details class="transcript"><summary>Đọc lời kể của cảnh này</summary><p>${text}</p></details>${scene===current.scenes.length-1?`<div class="moral"><strong>🌱 Hạt mầm bé mang về</strong>${current.moral}</div>`:''}<div class="reader-action"><small id="voiceStatus">Hoạt hình tự chuyển cảnh · Giọng kể tùy theo thiết bị</small><button class="primary" id="beginQuiz">Khám phá câu hỏi ☆</button></div>`;
- $('#closeReader').onclick=()=>reader.close();
- $('#play').onclick=()=>playing?stop():play();
- $('#prevScene').onclick=()=>changeScene(scene-1);
- $('#nextScene').onclick=()=>scene===current.scenes.length-1?finishReading():changeScene(scene+1);
- $('#speed').value=String(speed);
- $('#speed').onchange=e=>{const was=playing;stop();speed=Number(e.target.value);renderReader();if(was)play()};
- $('#musicToggle').onclick=()=>{musicEnabled=!musicEnabled;$('#musicToggle').setAttribute('aria-pressed',musicEnabled);$('#musicToggle').setAttribute('aria-label',(musicEnabled?'Tắt':'Bật')+' nhạc nền');$('#musicToggle').textContent=musicEnabled?'♫':'♪';if(playing&&musicEnabled)movieMusic.start();else movieMusic.stop()};
- $('#fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if(reader.requestFullscreen)await reader.requestFullscreen();else toast('Thiết bị chưa hỗ trợ toàn màn hình.')}catch{toast('Thiết bị chưa cho phép toàn màn hình.')}};
- all('[data-scene]').forEach(b=>b.onclick=()=>changeScene(Number(b.dataset.scene)));
- $('#beginQuiz').onclick=()=>{stop();startQuiz()};syncPlay();
+const state={results:{},voice:true,music:true,progress:{},seen:{},filter:'Tất cả',...saved};
+function persist(){try{localStorage.setItem(key,JSON.stringify(state))}catch{}}
+let toastTimer;function toast(m){$('#toast').textContent=m;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),3200)}
+const getStory=id=>STORIES.find(s=>s.id===id);
+const narration=id=>window.NARRATION?.stories?.[id];
+const accents=['#f5a623','#e94e5b','#5bb04c','#f07b2b','#3d9be0','#9b6bd6'];
+
+/* Tăng độ tươi của màu trong tranh SVG (tranh gốc dùng tông pastel). */
+const vividCache={};
+function boost(hex){let r=parseInt(hex.slice(0,2),16)/255,g=parseInt(hex.slice(2,4),16)/255,b=parseInt(hex.slice(4,6),16)/255;const max=Math.max(r,g,b),min=Math.min(r,g,b),l=(max+min)/2;let h=0,s=0;if(max!==min){const d=max-min;s=l>.5?d/(2-max-min):d/(max+min);h=max===r?(g-b)/d+(g<b?6:0):max===g?(b-r)/d+2:(r-g)/d+4;h/=6}if(s<.05)return hex;s=Math.min(1,s*1.85+.1);const L=l>.88?l:l*.96;const q=L<.5?L*(1+s):L+s-L*s,p=2*L-q;const f=t=>{t=(t+1)%1;const v=t<1/6?p+(q-p)*6*t:t<1/2?q:t<2/3?p+(q-p)*(2/3-t)*6:p;return Math.round(v*255).toString(16).padStart(2,'0')};return f(h+1/3)+f(h)+f(h-1/3)}
+const vivid=svg=>svg.replace(/#([0-9a-fA-F]{6})(?![0-9a-fA-F])/g,(m,h)=>'#'+(vividCache[h]??=boost(h.toLowerCase())));
+let svgSerial=0;
+function uniqueIds(svg){const n=++svgSerial;return svg.replace(/id="([^"]+)"/g,`id="$1-u${n}"`).replace(/url\(#([^)]+)\)/g,`url(#$1-u${n})`)}
+function sceneArt(s,i){return uniqueIds(vivid(window.renderMovieScene(s,i,()=>'')))}
+// Cảnh vẽ ở khung 960×540 rồi phóng theo kích thước thật của khung chứa.
+const fitter=window.ResizeObserver?new ResizeObserver(es=>{for(const e of es){const sc=e.target.querySelector('.scene');if(sc)sc.style.setProperty('--s',e.contentRect.width/960)}}):null;
+function fit(el){const sc=el.querySelector('.scene');if(sc)sc.style.setProperty('--s',el.clientWidth/960);fitter?.observe(el)}
+
+/* ---------- Trang chủ ---------- */
+function home(){
+ document.title='Vườn Truyện Nhỏ · Truyện kể cho bé';
+ const cats=['Tất cả',...new Set(STORIES.map(s=>s.category))];if(!cats.includes(state.filter))state.filter='Tất cả';
+ main.innerHTML=`<header class="home-head"><h1 class="logo">Vườn Truyện Nhỏ</h1><p class="tagline">Xem hoạt hình, nghe kể chuyện, trả lời câu hỏi!</p></header><nav class="chips" aria-label="Lọc theo thể loại">${cats.map(c=>`<button class="chip" data-cat="${esc(c)}" aria-pressed="${c===state.filter}">${esc(c)}</button>`).join('')}</nav><section class="grid" id="grid" aria-label="Danh sách truyện"></section>`;
+ const grid=$('#grid');
+ const draw=()=>{const list=STORIES.map((s,n)=>[s,n]).filter(([s])=>state.filter==='Tất cả'||s.category===state.filter);grid.innerHTML=list.map(([s,n],k)=>{const r=state.results[s.id],seen=state.seen[s.id],p=state.progress[s.id];return `<a class="card" href="#/truyen/${s.id}" style="--accent:${accents[n%accents.length]};--k:${k}">${seen?'<span class="seen">✓ Đã xem</span>':p&&p.scene>0?'<span class="seen doing">Đang xem dở</span>':''}<div class="card-art">${sceneArt(s,0)}</div><div class="card-body"><div><h2>${esc(s.title)}</h2><p>${esc(s.category)} · ${s.minutes} phút${r?` · <span class="stars">${'★'.repeat(r.stars)}${'☆'.repeat(3-r.stars)}</span>`:''}</p></div><span class="play-dot" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></span></div></a>`}).join('');all('.card-art').forEach(fit)};
+ draw();
+ all('[data-cat]').forEach(b=>b.onclick=()=>{state.filter=b.dataset.cat;persist();all('[data-cat]').forEach(x=>x.setAttribute('aria-pressed',x===b));draw()});
 }
 
-function changeScene(index,autoplay=playing){stop();scene=Math.max(0,Math.min(index,current.scenes.length-1));saveProgress();renderReader();if(autoplay)play()}
-function finishReading(){stop();saveProgress(true);toast('Bé đã đọc xong một câu chuyện!');startQuiz()}
-function play(){if(limited()){toast('Đã đủ thời gian nghe hôm nay. Mình nghỉ mắt một chút nhé!');return}stop();playing=true;syncPlay();if(musicEnabled)movieMusic.start();const myToken=token;const text=current.scenes[scene][1];const voices=window.speechSynthesis?.getVoices()||[];const voice=voices.find(v=>/^vi(-|_)?/i.test(v.lang));const advance=()=>{if(token!==myToken||!playing)return;if(scene<current.scenes.length-1)changeScene(scene+1,true);else finishReading()};
-if(voice&&window.SpeechSynthesisUtterance){utterance=new SpeechSynthesisUtterance(text);utterance.lang='vi-VN';utterance.voice=voice;utterance.rate=speed;utterance.pitch=1;utterance.onend=advance;utterance.onerror=()=>{if(token===myToken){$('#voiceStatus').textContent='Giọng kể chưa phát được · Hoạt hình vẫn tiếp tục';fallbackTimer=setTimeout(advance,Math.max(14000,text.split(/\s+/).length*450/speed))}};$('#voiceStatus').textContent=`Giọng kể: ${voice.name} · Tiếng Việt`;window.speechSynthesis.speak(utterance)}else{$('#voiceStatus').textContent='Hoạt hình đang phát · Thiết bị chưa có giọng kể tiếng Việt';fallbackTimer=setTimeout(advance,Math.max(14000,text.split(/\s+/).length*450/speed))}}
-if(window.speechSynthesis)window.speechSynthesis.getVoices();
-setInterval(()=>{if(playing&&!document.hidden){state.usage[today()]=usage()+1;if(usage()%5===0)persist();if(limited()){stop();persist();toast('Đã đủ thời gian nghe. Mình nghỉ ngơi và trò chuyện cùng cha mẹ nhé!')}}},1000);
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&playing)stop()});
-reader.addEventListener('close',()=>{stop();if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});render()});reader.addEventListener('cancel',stop);
-function startQuiz(){quizIndex=0;quizScore=0;showQuiz()}
-function showQuiz(){quizTried=false;quizLocked=false;const q=current.quiz[quizIndex];$('#readerContent').innerHTML=`<div class="reader-head"><div><h2>Cùng bé khám phá</h2><small>${current.title}</small></div><button class="icon-btn" id="closeReader" aria-label="Đóng câu hỏi">×</button></div><section class="quiz-body"><span class="eyebrow">CÂU ${quizIndex+1} / ${current.quiz.length}</span><div class="progress"><span style="width:${quizIndex/current.quiz.length*100}%"></span></div><h2>${q[0]}</h2><div class="quiz-options">${q[1].map((a,i)=>`<button class="quiz-option" data-answer="${i}"><span style="color:#acb59c;margin-right:10px">${String.fromCharCode(65+i)}.</span>${a}</button>`).join('')}</div><p class="quiz-feedback" role="status" id="feedback"></p><div style="display:flex;justify-content:space-between;gap:15px"><button class="text-btn" id="backToStory">← Đọc lại truyện</button><button class="primary" id="nextQuestion" hidden>${quizIndex===current.quiz.length-1?'Xem thành tích ☆':'Câu tiếp →'}</button></div></section>`;$('#closeReader').onclick=()=>reader.close();$('#backToStory').onclick=renderReader;all('[data-answer]').forEach(b=>b.onclick=()=>{if(quizLocked||b.disabled)return;const answer=Number(b.dataset.answer);if(answer===q[2]){quizLocked=true;if(!quizTried)quizScore++;b.classList.add('right');$('#feedback').textContent='Đúng rồi! Bé đã nhớ thật tốt 🌱';all('[data-answer]').forEach(x=>x.disabled=true);$('#nextQuestion').hidden=false;$('#nextQuestion').focus()}else{quizTried=true;b.classList.add('wrong');b.disabled=true;$('#feedback').textContent='Chưa đúng rồi. Bé nghĩ thêm và thử lại nhé!'}});$('#nextQuestion').onclick=()=>{quizIndex++;if(quizIndex<current.quiz.length)showQuiz();else quizDone()}}
-function quizDone(){const n=current.quiz.length,stars=quizScore===n?3:quizScore>=Math.ceil(n*.6)?2:1;const previous=state.results[current.id];if(!previous||previous.stars<stars)state.results[current.id]={stars,score:quizScore,total:n,at:new Date().toISOString()};persist();$('#readerContent').innerHTML=`<div class="reader-head"><h2>Hạt mầm của ${esc(state.name)}</h2><button class="icon-btn" id="closeReader" aria-label="Đóng kết quả">×</button></div><div class="result"><div class="huge-stars" aria-label="${stars} sao">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</div><span class="eyebrow">MỖI LẦN THỬ LÀ MỘT LẦN LỚN LÊN</span><h1>${stars===3?'Bé thật tuyệt vời!':'Bé đã rất cố gắng!'}</h1><p>Bé trả lời đúng ngay ${quizScore}/${n} câu.<br>Bé nhận ${stars} ngôi sao. Thành tích tốt nhất được giữ lại.</p><div class="moral" style="text-align:left"><strong>Điều mình cùng nhớ</strong>${current.moral}</div><button class="primary" id="retryQuiz">Thử lại một lần nữa ↻</button> <button class="text-btn" id="otherStories">Chọn truyện khác →</button></div>`;$('#closeReader').onclick=()=>reader.close();$('#retryQuiz').onclick=startQuiz;$('#otherStories').onclick=()=>reader.close()}
-window.addEventListener('hashchange',()=>{render();window.scrollTo({top:0,behavior:'smooth'})});render();
+/* ---------- Nhạc nền nhẹ (tạo trực tiếp, không cần file) ---------- */
+const music=(()=>{let ctx,gain,timer,step=0;const scale=[523.25,587.33,659.25,783.99,880,1046.5];const melody=[0,2,4,2,3,1,0,2,4,5,4,2,3,2,1,0];return{start(){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;ctx=ctx||new AC();if(!gain){gain=ctx.createGain();gain.gain.value=.022;gain.connect(ctx.destination)}ctx.resume().catch(()=>{});if(timer)return;const note=()=>{const t=ctx.currentTime,o=ctx.createOscillator(),v=ctx.createGain();o.type='triangle';o.frequency.value=scale[melody[step++%melody.length]];v.gain.setValueAtTime(0,t);v.gain.linearRampToValueAtTime(.6,t+.03);v.gain.exponentialRampToValueAtTime(.001,t+1.1);o.connect(v);v.connect(gain);o.start(t);o.stop(t+1.2);if(step%4===1){const bo=ctx.createOscillator(),bv=ctx.createGain();bo.type='sine';bo.frequency.value=scale[melody[(step-1)%melody.length]]/4;bv.gain.setValueAtTime(0,t);bv.gain.linearRampToValueAtTime(.5,t+.1);bv.gain.exponentialRampToValueAtTime(.001,t+2.4);bo.connect(bv);bv.connect(gain);bo.start(t);bo.stop(t+2.5)}};note();timer=setInterval(note,620)}catch{}},stop(){clearInterval(timer);timer=null;if(ctx)ctx.suspend().catch(()=>{})},duck(on){if(gain&&ctx)gain.gain.setTargetAtTime(on?.012:.022,ctx.currentTime,.3)}}})();
+
+/* ---------- Bộ phát giọng kể ---------- */
+const audio=new Audio();audio.preload='auto';
+let token=0,waitTimer=null;
+function cancelSpeech(){token++;clearTimeout(waitTimer);audio.onended=audio.onerror=null;audio.pause();music.duck(false)}
+function wordsTime(text){return Math.max(1800,text.split(/\s+/).length*420)}
+// Phát một câu; luôn gọi done() đúng một lần (kể cả khi tắt giọng hoặc lỗi tải file).
+function say(clip,text,done,{voice=state.voice}={}){
+ const my=++token;clearTimeout(waitTimer);audio.onended=audio.onerror=null;audio.pause();
+ const finish=()=>{if(my!==token)return;audio.onended=audio.onerror=null;music.duck(false);done&&done()};
+ if(!voice||!clip?.f){waitTimer=setTimeout(finish,clip?.d?clip.d*1000+300:wordsTime(text));return}
+ audio.src=clip.f;audio.onended=()=>{waitTimer=setTimeout(finish,280)};audio.onerror=()=>{waitTimer=setTimeout(finish,wordsTime(text))};
+ music.duck(true);audio.play().catch(()=>{if(my===token)waitTimer=setTimeout(finish,wordsTime(text))});
+}
+// Câu nhỏ đi kèm (khen, nhắc) — không chặn luồng.
+function blip(clip){if(!state.voice||!clip?.f)return;cancelSpeech();audio.src=clip.f;audio.play().catch(()=>{})}
+
+/* ---------- Trang truyện ---------- */
+let story=null,scene=0,seg=0,playing=false,started=false,paused=null;
+function segments(s,i){const n=narration(s.id);if(n?.scenes?.[i])return n.scenes[i];return (s.scenes[i][1].match(/[^.!?…]+[.!?…]+|[^.!?…]+$/g)||[s.scenes[i][1]]).map(t=>({t:t.trim()}))}
+function sceneSeconds(s,i){return segments(s,i).reduce((n,c)=>n+(c.d||wordsTime(c.t)/1000)+.3,1.5)}
+
+function openStory(id){
+ stopAll();story=getStory(id);if(!story){location.hash='#/';return}
+ scene=0;seg=0;started=false;
+ document.title=story.title+' · Vườn Truyện Nhỏ';
+ const r=state.results[story.id];
+ main.innerHTML=`<div class="story-page"><a class="back" href="#/"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Danh sách truyện</a><div class="story-title"><h1>${esc(story.title)}</h1><span>${esc(story.category)} cho bé · khoảng ${story.minutes} phút${r?` · <b class="stars">${'★'.repeat(r.stars)}${'☆'.repeat(3-r.stars)}</b>`:''}</span></div>
+ <div class="player" id="player"><div class="stage movie-stage" id="stage"></div><div class="subtitle" id="subtitle" aria-live="polite"></div><div class="tap-flash" id="tapFlash" aria-hidden="true"></div><div class="scene-bar" aria-hidden="true"><span id="bar"></span></div><div class="overlay" id="overlay"></div></div>
+ <div class="controls"><div class="ctl-group"><button class="ctl" id="prev" aria-label="Cảnh trước"><svg viewBox="0 0 24 24"><path d="M7 5v14M18 5 9 12l9 7z"/></svg></button><button class="ctl main" id="play" aria-label="Phát"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></button><button class="ctl" id="next" aria-label="Cảnh sau"><svg viewBox="0 0 24 24"><path d="M17 5v14M6 5l9 7-9 7z"/></svg></button></div>
+ <div class="dots" id="dots">${story.scenes.map((_,i)=>`<button data-scene="${i}" aria-label="Cảnh ${i+1}">${i+1}</button>`).join('')}</div>
+ <div class="ctl-group"><button class="ctl pill" id="voiceBtn" aria-pressed="${state.voice}"><svg viewBox="0 0 24 24"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span>Giọng</span></button><button class="ctl pill" id="musicBtn" aria-pressed="${state.music}"><svg viewBox="0 0 24 24"><path d="M9 18V5l11-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm11-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/></svg><span>Nhạc</span></button><button class="ctl" id="fsBtn" aria-label="Toàn màn hình"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button></div></div>
+ <section class="lesson"><span class="lesson-icon">♥</span><div><h2>Bé học được gì?</h2><p>${esc(story.moral)}</p></div></section>
+ <div class="story-actions"><button class="big-btn" id="quizBtn">Trả lời câu hỏi ★</button></div></div>`;
+ drawScene(false);showStart();
+ $('#play').onclick=()=>{if(!started)return begin();playing?pause():resume()};
+ $('#prev').onclick=()=>goScene(scene-1);$('#next').onclick=()=>scene<story.scenes.length-1?goScene(scene+1):ending();
+ all('[data-scene]').forEach(b=>b.onclick=()=>goScene(Number(b.dataset.scene)));
+ $('#voiceBtn').onclick=()=>{state.voice=!state.voice;persist();$('#voiceBtn').setAttribute('aria-pressed',state.voice);toast(state.voice?'Đã bật giọng kể':'Đã tắt giọng kể — phụ đề vẫn chạy');if(playing){runScene(seg)}};
+ $('#musicBtn').onclick=()=>{state.music=!state.music;persist();$('#musicBtn').setAttribute('aria-pressed',state.music);if(playing&&state.music)music.start();else music.stop()};
+ $('#fsBtn').onclick=async()=>{const p=$('#player');try{if(document.fullscreenElement)await document.exitFullscreen();else if(p.requestFullscreen)await p.requestFullscreen();else if(p.webkitRequestFullscreen)p.webkitRequestFullscreen();else toast('Thiết bị chưa hỗ trợ toàn màn hình')}catch{toast('Thiết bị chưa cho phép toàn màn hình')}};
+ $('#quizBtn').onclick=()=>startQuiz();
+ bindStage();
+ window.scrollTo({top:0});
+}
+function drawScene(animate=true){
+ const stage=$('#stage');stage.style.setProperty('--scene-duration',sceneSeconds(story,scene)+'s');
+ stage.innerHTML=sceneArt(story,scene);fit(stage);
+ if(animate){stage.classList.remove('iris');void stage.offsetWidth;stage.classList.add('iris')}
+ all('[data-scene]').forEach((b,i)=>{b.classList.toggle('on',i===scene);b.classList.toggle('done',i<scene);if(i===scene)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current')});
+ $('#prev').disabled=scene===0;
+ $('#subtitle').textContent='';$('#subtitle').classList.remove('show');
+ sync();
+}
+function sync(){const st=$('#stage');if(!st)return;st.classList.toggle('is-playing',playing);const b=$('#play');b.innerHTML=playing?'<svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg>':'<svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>';b.setAttribute('aria-label',playing?'Tạm dừng':'Phát');keepAwake(playing);tick();
+ if('mediaSession' in navigator&&story){try{navigator.mediaSession.metadata=new MediaMetadata({title:story.title,artist:'Vườn Truyện Nhỏ'});navigator.mediaSession.playbackState=playing?'playing':'paused'}catch{}}}
+let segStart=0,segDur=1,lock=null,rafId=0;
+// Thanh tiến độ của cảnh: theo câu đang đọc và vị trí trong file âm thanh.
+function tick(){cancelAnimationFrame(rafId);const step=()=>{const bar=$('#bar');if(!bar||!story)return;const n=segments(story,scene).length;const f=audio.duration&&!audio.paused?audio.currentTime/audio.duration:Math.min(1,(performance.now()-segStart)/segDur);bar.style.width=Math.min(100,(seg+(playing&&started?f:0))/n*100)+'%';if(playing)rafId=requestAnimationFrame(step)};step()}
+function keepAwake(on){try{if(on&&!lock&&navigator.wakeLock)navigator.wakeLock.request('screen').then(l=>{lock=l;l.addEventListener('release',()=>{lock=null})}).catch(()=>{});else if(!on&&lock){lock.release().catch(()=>{});lock=null}}catch{}}
+const fetched=new Set();function prefetch(c){if(location.protocol==='file:'||!state.voice||!c?.f||fetched.has(c.f))return;fetched.add(c.f);fetch(c.f).catch(()=>fetched.delete(c.f))}
+function saveProgress(){if(!story)return;const p=state.progress[story.id]||{};state.progress[story.id]={...p,scene,done:false};persist()}
+function flash(icon){const f=$('#tapFlash');if(!f)return;f.innerHTML=icon;f.classList.remove('show');void f.offsetWidth;f.classList.add('show')}
+function toggle(){if(!started)return begin();if($('#player').dataset.panel)return;playing?pause():resume();flash(playing?'<svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>':'<svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg>')}
+// Chạm khung hình để dừng/phát, vuốt ngang để chuyển cảnh.
+function bindStage(){const st=$('#stage');let x0=null,y0=0,t0=0;
+ st.addEventListener('pointerdown',e=>{x0=e.clientX;y0=e.clientY;t0=Date.now()});
+ st.addEventListener('pointerup',e=>{if(x0===null)return;const dx=e.clientX-x0,dy=e.clientY-y0;x0=null;if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){if(dx<0)scene<story.scenes.length-1?goScene(scene+1):ending();else goScene(scene-1);return}if(Math.abs(dx)<10&&Math.abs(dy)<10&&Date.now()-t0<500)toggle()});
+}
+function overlay(html,kind=''){if(html&&kind!=='start'){const sb=$('#subtitle');sb.textContent='';sb.classList.remove('show')}const o=$('#overlay');o.innerHTML=html;o.classList.toggle('show',!!html);$('#player').dataset.panel=html?kind:''}
+function showStart(){
+ const p=state.progress[story.id],resumeAt=p&&!p.done&&p.scene>0?p.scene:0;
+ overlay(`<div class="start-card"><div class="start-title">${esc(story.title)}</div><div class="start-sub">${esc(story.category)} · ${esc(story.tag)}</div>${resumeAt?`<div class="end-actions"><button class="start-btn" id="resumeBtn"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>Xem tiếp cảnh ${resumeAt+1}</button><button class="ghost-btn" id="startBtn">↺ Xem từ đầu</button></div>`:`<button class="start-btn" id="startBtn"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>Bắt đầu xem</button>`}<small>Bật loa lên để nghe kể chuyện và nhạc nhé</small></div>`,'start');
+ $('#startBtn').onclick=begin;if(resumeAt)$('#resumeBtn').onclick=()=>{started=true;overlay('');playing=true;goScene(resumeAt,true)};
+}
+function begin(){
+ started=true;overlay('');playing=true;sync();if(state.music)music.start();
+ if(scene!==0){scene=0;drawScene(true)}saveProgress();
+ const n=narration(story.id);
+ showSub(story.title);
+ say(n?.intro,story.title,()=>runScene(0));
+}
+function showSub(text,who=null){const el=$('#subtitle');if(!el)return;el.classList.remove('show');void el.offsetWidth;el.classList.toggle('dialogue',who!==null);el.innerHTML=who!==null?`${who?`<b class="who">${esc(who)}</b>`:""}<span>“${esc(text)}”</span>`:esc(text);el.classList.add('show')}
+// Lời thoại: nhân vật đang nói mấp máy miệng.
+const WHO={'Thỏ Mẹ':'rabbit-mom','Gấu Mẹ':'bear-mom','Heo Mẹ':'pig-mom','Vịt Mẹ':'duck-mom','Gà Mẹ':'hen-mom','Mẹ':'rabbit-mom','Thỏ Con':'rabbit','Thỏ':'rabbit','Thỏ Trắng':'rabbit','Thỏ Nâu':'rabbit','Gấu Con':'bear','Gấu':'bear','Bác Gấu':'bear','Bác':'bear','Cáo':'fox','Chuột':'mouse','Sư Tử':'lion','Gà Trống':'rooster','Vịt Con':'duck','Gà Con':'chick','Sóc':'squirrel','Heo':'pig','Heo Con':'pig','Ông':'human-elder','Chim Sẻ':'sparrow','Rùa':'turtle','Mèo':'cat','Kiến':'ant','Quạ':'crow'};
+function setTalking(who){all('#stage .actor.talking').forEach(x=>x.classList.remove('talking'));const t=who&&WHO[who];if(!t)return;const list=all('#stage .actor[data-c="'+t+'"]');(list.find(x=>x.querySelector('.rig-mouth'))||list[0])?.classList.add('talking')}
+function runScene(from=0){
+ if(!playing)return;const list=segments(story,scene);seg=from;
+ if(seg>=list.length){waitTimer=setTimeout(()=>{if(!playing)return;scene<story.scenes.length-1?goScene(scene+1,true):ending()},900);return}
+ const c=list[seg];showSub(c.t,c.say?(c.who||''):null);setTalking(c.say&&state.voice?c.who:'');prefetch(list[seg+1]||segments(story,Math.min(scene+1,story.scenes.length-1))[0]);segStart=performance.now();segDur=(c.d||wordsTime(c.t)/1000)*1000;tick();
+ say(c,c.t,()=>{setTalking('');runScene(seg+1)});
+}
+function goScene(i,auto=false){
+ if(!story)return;i=Math.max(0,Math.min(i,story.scenes.length-1));cancelSpeech();
+ if(!started){started=true;overlay('')}
+ scene=i;seg=0;paused=null;drawScene(true);saveProgress();
+ if(auto||playing){playing=true;sync();if(state.music)music.start();waitTimer=setTimeout(()=>runScene(0),650)}
+}
+function pause(){playing=false;paused={seg};cancelSpeech();music.stop();sync()}
+function resume(){if(!started)return begin();overlay('');playing=true;sync();if(state.music)music.start();runScene(paused?.seg||0);paused=null}
+function stopAll(){playing=false;cancelSpeech();music.stop();keepAwake(false);cancelAnimationFrame(rafId);story=null}
+function ending(){
+ cancelSpeech();playing=false;sync();music.stop();const n=narration(story.id);state.seen[story.id]=true;state.progress[story.id]={scene:0,done:true};persist();const nextStory=STORIES[(STORIES.indexOf(story)+1)%STORIES.length];
+ overlay(`<div class="end-card"><div class="end-badge">★</div><div class="start-title small">Hết truyện!</div><p>${esc(story.moral)}</p><div class="end-actions"><button class="start-btn" id="endQuiz">Trả lời câu hỏi ★</button><button class="ghost-btn" id="endReplay">↻ Xem lại</button></div><a class="next-link" href="#/truyen/${nextStory.id}">Truyện tiếp theo: <b>${esc(nextStory.title)}</b> →</a></div>`,'end');
+ $('#endQuiz').onclick=startQuiz;$('#endReplay').onclick=()=>{overlay('');scene=0;drawScene(true);playing=true;sync();if(state.music)music.start();runScene(0)};
+ say(n?.moral,story.moral,null);
+}
+
+/* ---------- Câu hỏi ---------- */
+let qi=0,score=0,tried=false,locked=false;
+function startQuiz(){if(!story)return;cancelSpeech();playing=false;music.stop();sync();qi=0;score=0;$('#player').scrollIntoView({behavior:'smooth',block:'center'});showQuestion(true)}
+function showQuestion(intro=false){
+ tried=false;locked=false;const q=story.quiz[qi],nq=narration(story.id)?.quiz?.[qi];
+ overlay(`<div class="quiz-card"><div class="quiz-top"><span>Câu ${qi+1}/${story.quiz.length}</span><button class="icon-x" id="quizClose" aria-label="Đóng câu hỏi">×</button></div><h3>${esc(q[0])}</h3><div class="answers">${q[1].map((a,i)=>`<button class="answer" data-a="${i}"><b>${'ABC'[i]}</b>${esc(a)}</button>`).join('')}</div><p class="feedback" id="feedback" role="status"></p><button class="start-btn" id="nextQ" hidden>${qi===story.quiz.length-1?'Xem kết quả ★':'Câu tiếp theo →'}</button></div>`,'quiz');
+ $('#quizClose').onclick=()=>{cancelSpeech();overlay('')};
+ // Đọc câu hỏi rồi lần lượt các đáp án, làm nổi đáp án đang được đọc.
+ const readAnswer=i=>{all('.answer').forEach((b,k)=>b.classList.toggle('reading',k===i));if(i>=q[1].length){all('.answer').forEach(b=>b.classList.remove('reading'));return}say(nq?.a?.[i],q[1][i],()=>readAnswer(i+1))};
+ const ask=()=>say(nq?.q,q[0],()=>readAnswer(0));if(intro&&state.voice&&window.NARRATION?.common?.quizStart)say(window.NARRATION.common.quizStart,'',ask);else ask();
+ all('[data-a]').forEach(b=>b.onclick=()=>{if(locked||b.disabled)return;all('.answer').forEach(x=>x.classList.remove('reading'));const a=Number(b.dataset.a),common=window.NARRATION?.common;
+  if(a===q[2]){locked=true;if(!tried)score++;b.classList.add('right');$('#feedback').textContent='Đúng rồi! Bé giỏi quá! 🎉';all('[data-a]').forEach(x=>x.disabled=true);$('#nextQ').hidden=false;blip(common?.right?.[qi%(common.right.length||1)])}
+  else{tried=true;b.classList.add('wrong');b.disabled=true;$('#feedback').textContent='Chưa đúng rồi. Bé thử lại nhé!';blip(common?.wrong?.[qi%(common.wrong.length||1)])}});
+ $('#nextQ').onclick=()=>{qi++;qi<story.quiz.length?showQuestion():quizDone()};
+}
+function quizDone(){
+ const n=story.quiz.length,stars=score===n?3:score>=Math.ceil(n*.6)?2:1,prev=state.results[story.id];
+ if(!prev||prev.stars<stars){state.results[story.id]={stars,score,total:n};persist()}
+ overlay(`<div class="end-card"><div class="big-stars">${'<span>★</span>'.repeat(stars)}${'<span class="off">★</span>'.repeat(3-stars)}</div><div class="start-title small">${stars===3?'Bé thật tuyệt vời!':'Bé đã rất cố gắng!'}</div><p>Bé trả lời đúng ngay ${score}/${n} câu.</p><div class="end-actions"><button class="start-btn" id="again">↻ Làm lại</button><a class="ghost-btn" href="#/">Chọn truyện khác</a></div></div>`,'end');
+ $('#again').onclick=startQuiz;blip(window.NARRATION?.common?.done);
+}
+
+/* ---------- Điều hướng ---------- */
+function route(){const m=location.hash.match(/^#\/truyen\/([\w-]+)/);if(m)openStory(m[1]);else{stopAll();home();window.scrollTo({top:0})}}
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&playing)pause()});
+document.addEventListener('keydown',e=>{const t=e.target instanceof Element?e.target:document.body;if(!story||!$('#stage')||t.closest('input,select,textarea')||e.ctrlKey||e.metaKey||e.altKey)return;const k=e.key;
+ if(k===' '||k==='k'){if(k===' '&&t.closest('button,a'))return;e.preventDefault();toggle()}
+ else if(k==='ArrowRight'){e.preventDefault();scene<story.scenes.length-1?goScene(scene+1):ending()}
+ else if(k==='ArrowLeft'){e.preventDefault();goScene(scene-1)}
+ else if(k==='f')$('#fsBtn').click();else if(k==='m')$('#musicBtn').click()});
+if('mediaSession' in navigator){try{navigator.mediaSession.setActionHandler('play',()=>{if(story&&!playing)toggle()});navigator.mediaSession.setActionHandler('pause',()=>{if(story&&playing)toggle()});navigator.mediaSession.setActionHandler('nexttrack',()=>{if(story)$('#next').click()});navigator.mediaSession.setActionHandler('previoustrack',()=>{if(story)$('#prev').click()})}catch{}}
+window.addEventListener('hashchange',route);route();
 })();
-
-
