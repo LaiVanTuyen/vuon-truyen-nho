@@ -16,4 +16,5 @@ Sửa nội dung trong `dist/data.js`. Tệp xuất bản nằm trong `dist/`. C
 
 Tìm kiếm, phân loại và lọc tuổi; lưu yêu thích; một hồ sơ bạn nhỏ; lưu cảnh đang đọc; tự chuyển cảnh; đọc bằng Web Speech API với giọng tiếng Việt của thiết bị; tốc độ đọc; toàn màn hình trên trình duyệt hỗ trợ; trắc nghiệm cho thử lại và tính 1–3 sao; huy hiệu; lịch sử; đếm thời gian nghe; giới hạn thời gian nghe; chế độ trước giờ ngủ; hỗ trợ giảm chuyển động.
 
-Dữ liệu lưu ở localStorage của trình duyệt, không có đăng nhập hoặc đồng bộ đám mây. Góc phụ huynh không có khóa tài khoản. Giọng kể phụ thuộc thiết bị: thiếu giọng tiếng Việt thì tự chuyển cảnh với thông báo, không giả vờ có âm thanh. Tranh có chuyển động nhẹ, không phải phim hoạt hình hoàn chỉnh. Giới hạn thời gian chỉ áp dụng phát/tự chuyển lời kể, vẫn cho đọc chữ thủ công.
+Dữ liệu lưu ở localStorage của trình duyệt, không có đăng nhập hoặc đồng bộ đám mây. Góc phụ huynh không có khóa tài khoản. Giọng kể phụ thuộc thiết bị: thiếu giọng tiếng Việt thì vẫn phát hoạt hình và nhạc nền, kèm thông báo chưa có giọng tiếng Việt. Mỗi truyện có 4 cảnh hoạt hình 2D riêng, nhân vật diễn xuất theo nội dung, chuyển động máy quay, phụ đề, nhạc nền tổng hợp và tự chuyển cảnh. Chuyển động được tạo bằng SVG/CSS, không phải video dựng sẵn. Giới hạn thời gian chỉ áp dụng phát/tự chuyển lời kể, vẫn cho đọc chữ thủ công.
+
