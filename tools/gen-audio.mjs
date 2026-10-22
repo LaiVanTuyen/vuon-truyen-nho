@@ -8,7 +8,6 @@ import path from 'node:path';
 import vm from 'node:vm';
 import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
-import {MsEdgeTTS, OUTPUT_FORMAT} from 'msedge-tts';
 
 const FEMALE = 'vi-VN-HoaiMyNeural', MALE = 'vi-VN-NamMinhNeural';
 const KBPS = 48;
@@ -27,29 +26,19 @@ const VOICES = {
   child: {voice: FEMALE, rate: 0, pitch: 20},
   tiny: {voice: FEMALE, rate: 6, pitch: 28},
   mother: {voice: FEMALE, rate: -8, pitch: 6},
+  lady: {voice: FEMALE, rate: -10, pitch: 2},
+  grandma: {voice: FEMALE, rate: -20, pitch: -6},
   oldman: {voice: MALE, rate: -14, pitch: -8},
   uncle: {voice: MALE, rate: -10, pitch: -12},
+  man: {voice: MALE, rate: -6, pitch: 0},
+  king: {voice: MALE, rate: -16, pitch: -16},
+  rich: {voice: MALE, rate: 0, pitch: 4},
   big: {voice: MALE, rate: -14, pitch: -18},
   sly: {voice: MALE, rate: 2, pitch: 6},
   proud: {voice: MALE, rate: 4, pitch: 10},
 };
-// Tên nhân vật → vai giọng. Người nói là tên xuất hiện đầu tiên trong lời dẫn ("Thỏ Con ôm mẹ:" → Thỏ Con).
-const SPEAKERS = [
-  ['Thỏ Mẹ', 'mother'], ['Gấu Mẹ', 'mother'], ['Heo Mẹ', 'mother'], ['Vịt Mẹ', 'mother'], ['Gà Mẹ', 'mother'], ['mẹ', 'mother'], ['Mẹ', 'mother'],
-  ['Bác Gấu', 'uncle'], ['Bác', 'uncle'], ['Sư Tử', 'big'], ['Ông', 'oldman'], ['ông', 'oldman'], ['người cha', 'oldman'], ['Cha', 'oldman'], ['Gió', 'uncle'], ['Mặt Trời', 'uncle'],
-  ['Cáo', 'sly'], ['Gà Trống', 'proud'], ['Quạ', 'uncle'],
-  ['Chuột', 'tiny'], ['Kiến', 'tiny'], ['Chim Sẻ', 'tiny'], ['Gà Con', 'tiny'], ['Vịt Con', 'tiny'], ['vịt con', 'tiny'],
-  ['Thỏ Con', 'child'], ['Gấu Con', 'child'], ['Heo Con', 'child'], ['Thỏ Trắng', 'child'], ['Thỏ Nâu', 'child'], ['Thỏ', 'child'], ['Sóc', 'child'], ['Rùa', 'child'], ['Gấu', 'child'], ['Heo', 'child'], ['Mèo', 'sly'], ['Cháu', 'child'], ['cháu', 'child'],
-];
-function speakerOf(lead) {
-  let best = null, at = -1;
-  for (const [name, role] of SPEAKERS) {
-    const m = new RegExp('(?<!\\p{L})' + name + '(?!\\p{L})', 'u').exec(lead), i = m ? m.index : -1;
-    if (i < 0) continue;
-    if (at < 0 || i < at || (i === at && name.length > best[0].length)) { at = i; best = [name, role]; }
-  }
-  return best ? {who: best[0], role: best[1]} : {who: '', role: 'child'};
-}
+// Bảng tên người nói và cách tách câu nằm ở dist/speech.js (dùng chung với trang web).
+const SPEECH = (() => { const box = {}; vm.runInNewContext(fs.readFileSync(path.join(dist, 'speech.js'), 'utf8'), box); return box.SPEECH; })();
 // Câu cảm thán đọc vui hơn, câu hỏi lên giọng.
 function prosody(role, text) {
   const v = {...VOICES[role]};
@@ -59,25 +48,7 @@ function prosody(role, text) {
   return {voice: v.voice, opts: {rate: sign(v.rate), pitch: sign(v.pitch)}};
 }
 
-// Tách lời kể: từng câu; câu có dấu hai chấm tách thành lời dẫn + lời thoại.
-function split(text, poem) {
-  const sentences = text.match(/[^.!?…]+[.!?…]+|[^.!?…]+$/g) || [text];
-  const parts = [];
-  for (let s of sentences) {
-    s = s.trim();
-    if (!s) continue;
-    if (poem) { parts.push(...s.split(/(?<=,)\s+/).map(t => ({t: t.trim(), role: 'poem'}))); continue; }
-    const colon = s.indexOf(': ');
-    // Sau dấu hai chấm là chữ thường thì đó là phần liệt kê, không phải lời thoại.
-    if (colon > 0 && colon < s.length - 3 && /^\p{Lu}/u.test(s.slice(colon + 2))) {
-      const lead = s.slice(0, colon + 1), line = s.slice(colon + 2);
-      const sp = speakerOf(lead);
-      parts.push({t: lead, role: 'narrator'}, {t: line, role: sp.role, who: sp.who, say: true});
-    } else if (s.length > 120) parts.push(...s.split(/(?<=,)\s+/).map(t => ({t: t.trim(), role: 'narrator'})));
-    else parts.push({t: s, role: 'narrator'});
-  }
-  return parts;
-}
+const split = (text, poem) => SPEECH.split(text, poem);
 
 const jobs = [];
 function clip(folder, text, role = 'narrator', extra = {}) {
@@ -106,6 +77,15 @@ for (const s of stories) {
   };
 }
 
+// Chạy thử không cần mạng: node gen-audio.mjs --dry (chỉ đếm số câu cần tạo).
+if (process.argv.includes('--dry')) {
+  const missing = jobs.filter(j => !(fs.existsSync(j.file) && fs.statSync(j.file).size > 1000));
+  const roles = {}; for (const j of jobs) roles[j.voice + ' ' + j.opts.pitch] = 1;
+  console.log(`${jobs.length} câu, ${missing.length} câu cần tạo mới, ${jobs.filter(j => j.entry.say).length} lời thoại nhân vật.`);
+  process.exit(0);
+}
+
+const {MsEdgeTTS, OUTPUT_FORMAT} = await import('msedge-tts');
 async function synth(job) {
   if (fs.existsSync(job.file) && fs.statSync(job.file).size > 1000) return false;
   fs.mkdirSync(path.dirname(job.file), {recursive: true});

@@ -30,7 +30,7 @@ const P={
  hen:{l:'#e7b98d',b:'#c98a55',s:'#8f5a30',m:'#f4dcc0',a:'#a8703f',n:'#f6a623',i:'#2a1a12'},
  sparrow:{l:'#d7b08a',b:'#b07c50',s:'#6f4a2c',m:'#f2e6d6',a:'#7a5232',n:'#4a3a30',i:'#1e1612'}
 };
-function moodOf(mood){return{sleep:mood==='sleep',joy:mood==='celebrate',happy:['celebrate','wave','boast','hug-child','hug-parent','relax'].includes(mood),sad:['sad','concern'].includes(mood),scared:['tremble','shiver','float-distress'].includes(mood),talk:['explain','boast','argue'].includes(mood),strain:['strain','huff','hammer','gnaw'].includes(mood),angry:['argue','huff'].includes(mood)}}
+function moodOf(mood){return{sleep:mood==='sleep'||mood==='nap',joy:mood==='celebrate',happy:['celebrate','wave','boast','hug-child','hug-parent','relax'].includes(mood),sad:['sad','concern','lie'].includes(mood),scared:['tremble','shiver','float-distress'].includes(mood),talk:['explain','boast','argue'].includes(mood),strain:['strain','huff','hammer','gnaw'].includes(mood),angry:['argue','huff'].includes(mood)}}
 function grads(id,p){const c=k=>R(p[k]);return `<defs><radialGradient id="${id}-fur" cx=".36" cy=".3" r=".78"><stop offset="0" stop-color="${c('l')}"/><stop offset=".55" stop-color="${c('b')}"/><stop offset="1" stop-color="${c('s')}"/></radialGradient><radialGradient id="${id}-head" cx=".38" cy=".3" r=".75"><stop offset="0" stop-color="${c('l')}"/><stop offset=".6" stop-color="${c('b')}"/><stop offset="1" stop-color="${c('s')}"/></radialGradient><linearGradient id="${id}-limb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c('b')}"/><stop offset="1" stop-color="${c('s')}"/></linearGradient><radialGradient id="${id}-iris" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="rgb(255,255,255)" stop-opacity=".25"/><stop offset=".35" stop-color="${c('i')}"/><stop offset="1" stop-color="rgb(20,14,12)"/></radialGradient><radialGradient id="${id}-ear" cx=".5" cy=".4" r=".7"><stop offset="0" stop-color="${c('a')}"/><stop offset="1" stop-color="${c('s')}" stop-opacity=".9"/></radialGradient></defs>`}
 
 /* ---------- Khuôn mặt ---------- */
@@ -71,6 +71,7 @@ function limb(side,id,p,{leg=false,sleeve=null,paw=null,foot=null}={}){
 /* ---------- Bộ phận theo loài ---------- */
 function ears(type,id,p){
  const f=`url(#${id}-head)`,inner=`url(#${id}-ear)`;
+ if(type==='goat')return [-1,1].map(s=>`<g transform="translate(${s*30} -96) rotate(${s*-28})"><g class="rig-ear ${s<0?'left':'right'}"><path d="M0 0Q${s*26} 4 ${s*34} 18Q${s*14} 16 0 8Z" fill="${f}" ${O()}/></g></g>`).join('')+[-1,1].map(s=>`<path d="M${s*10}-110Q${s*16}-140 ${s*34}-136Q${s*22}-132 ${s*18}-108Z" fill="rgb(214,196,160)" ${O(2)}/>`).join('');
  if(type==='rabbit')return [-1,1].map(s=>`<g transform="translate(${s*15} -107) rotate(${s*7})"><g class="rig-ear ${s<0?'left':'right'}"><path d="M-11 6C-21-28-17-64-1-68 15-69 15-30 11 6Z" fill="${f}" ${O()}/><path d="M-5-2C-11-28-8-54-1-57 6-56 7-28 5-2Z" fill="${inner}"/><path d="M-1-50v30" stroke="rgb(255,255,255)" stroke-width="2.5" opacity=".5" stroke-linecap="round"/></g></g>`).join('');
  if(type==='bear')return [-1,1].map(s=>`<g transform="translate(${s*24} -100)"><g class="rig-ear ${s<0?'left':'right'}"><circle cx="${s*5}" cy="-6" r="15" fill="${f}" ${O()}/><circle cx="${s*5}" cy="-5" r="8.5" fill="${inner}"/></g></g>`).join('');
  if(type==='pig')return [-1,1].map(s=>`<g transform="translate(${s*26} -104)"><g class="rig-ear ${s<0?'left':'right'}"><path d="M${s*-12} 4L${s*12}-30 ${s*20} 6Q${s*4} 14 ${s*-12} 4Z" fill="${f}" ${O()}/><path d="M${s*-4} 2L${s*11}-18 ${s*14} 3Z" fill="${inner}"/></g></g>`).join('');
@@ -82,6 +83,7 @@ function ears(type,id,p){
  return '';
 }
 function headShape(type){
+ if(type==='goat')return 'M-30-84C-32-106-17-114 0-114S32-106 30-84L22-52Q12-36 0-36T-22-52Z';
  if(type==='pig')return 'M-41-76C-41-104-22-116 0-116S41-104 41-76 24-39 0-39-41-50-41-76Z';
  if(type==='bear')return 'M-39-77C-39-104-21-116 0-116S39-104 39-77 23-38 0-38-39-52-39-77Z';
  if(type==='fox')return 'M-35-84C-33-107-17-116 0-116S33-107 35-84L47-62 33-59Q19-40 0-40T-33-59L-47-62Z';
@@ -93,6 +95,7 @@ function headShape(type){
 }
 function muzzle(type,p,m){
  const n=R(p.n),mz=R(p.m);
+ if(type==='goat')return `<ellipse cy="-54" rx="16" ry="12" fill="${mz}" ${O(1.8)}/><path d="M-5-60q5-4 10 0-2 5-5 5-3 0-5-5Z" fill="${n}"/><path d="M-8-40Q0-14 8-40" fill="rgb(236,232,220)" ${O(1.8)}/>`+mouth(m,-47,.7);
  if(type==='bear')return `<ellipse cy="-58" rx="18" ry="14" fill="${mz}" ${O(2)}/><path d="M-7-66q7-6 14 0 1 7-7 9-8-2-7-9Z" fill="${n}"/><circle cx="-2" cy="-65" r="1.8" fill="rgb(255,255,255)" opacity=".8"/><path d="M0-57v4" ${O(1.6)}/>`+mouth(m,-49,.85);
  if(type==='pig')return `<ellipse cy="-62" rx="18" ry="12.5" fill="${R(p.a)}" ${O(2.2)}/><ellipse cx="-6" cy="-62" rx="3" ry="4.5" fill="rgb(150,60,80)"/><ellipse cx="6" cy="-62" rx="3" ry="4.5" fill="rgb(150,60,80)"/><ellipse cx="-4" cy="-68" rx="7" ry="2.5" fill="rgb(255,255,255)" opacity=".45"/>`+mouth(m,-45,.9);
  if(type==='fox')return `<path d="M-33-70Q-14-66 0-56 14-66 33-70 26-42 0-40-26-42-33-70Z" fill="${mz}"/><path d="M-6-60q6-5 12 0-2 6-6 7-4-1-6-7Z" fill="${n}"/>`+whiskers(-56,.4)+mouth(m,-49,.8);
@@ -105,6 +108,7 @@ function muzzle(type,p,m){
 }
 function back(type,id,p){
  const f=`url(#${id}-fur)`;
+ if(type==='goat')return `<path class="rig-tail" d="M-28-14q-16-10-12-22 10 6 16 16Z" fill="${R(p.l)}" ${O(2)}/>`;
  if(type==='rabbit')return `<g class="rig-tail"><circle cx="-31" cy="-6" r="13" fill="${R(p.l)}" ${O()}/><path d="M-36-10q4-4 9-1" fill="none" ${O(1.3,.4)}/></g>`;
  if(type==='fox')return `<g class="rig-tail"><path d="M-22 2Q-80 12-84-46-66-40-52-20-46-36-30-28-26-14-18-8Z" fill="${f}" ${O()}/><path d="M-84-46Q-80-28-70-16-62-30-66-40-76-44-84-46Z" fill="rgb(255,247,236)"/></g>`;
  if(type==='pig')return `<path class="rig-tail" d="M28-8q24-6 20-20-4-9-11-3-4 6 4 9 9 1 14-8" fill="none" stroke="${R(p.s)}" stroke-width="5" stroke-linecap="round"/>`;
@@ -141,14 +145,15 @@ function bird(type,id,p,m){
  const n=R(p.n);
  const legs=duck?`<path d="M-10 4v14M10 4v14" stroke="${n}" stroke-width="4.5" stroke-linecap="round"/><path d="M-20 22l10-6 10 6ZM0 22l10-6 10 6Z" fill="${n}" ${O(1.6)}/>`:`<path d="M-10 4v17m-8 2 8-2 8 2M10 4v17m-8 2 8-2 8 2" fill="none" stroke="${n}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>`;
  const roo=type==='rooster',hen=type==='hen',spa=type==='sparrow';
- const tail=roo?`<g class="bird-tail"><path d="M-24-30Q-70-60-58-100-40-70-20-44Z" fill="rgb(38,110,72)" ${O(2)}/><path d="M-26-24Q-82-36-84-80-56-56-24-36Z" fill="rgb(26,80,60)" ${O(2)}/><path d="M-26-18Q-74-10-90-44-58-36-26-28Z" fill="rgb(214,80,30)" ${O(2)}/><path d="M-50-78q8 18 22 28" stroke="rgb(120,200,150)" stroke-width="2.5" fill="none" opacity=".6"/></g>`:`<path class="bird-tail" d="M-28-22Q-56-26-58-48-40-44-22-34Z" fill="${R(p.s)}" ${O(2)}/>`;
+ const phx=type==='phoenix';
+ const tail=phx?`<g class="bird-tail">${[['rgb(255,90,70)',-30,-100],['rgb(255,190,40)',-50,-80],['rgb(60,170,120)',-70,-56],['rgb(80,120,220)',-80,-28]].map(([c,x,y])=>`<path d="M-24-26Q${x-10} ${y+10} ${x-36} ${y-6} ${x-14} ${y+22} -22-18Z" fill="${c}" ${O(2)}/><circle cx="${x-28}" cy="${y}" r="6" fill="rgb(255,240,160)" ${O(1.4)}/>`).join('')}</g>`:roo?`<g class="bird-tail"><path d="M-24-30Q-70-60-58-100-40-70-20-44Z" fill="rgb(38,110,72)" ${O(2)}/><path d="M-26-24Q-82-36-84-80-56-56-24-36Z" fill="rgb(26,80,60)" ${O(2)}/><path d="M-26-18Q-74-10-90-44-58-36-26-28Z" fill="rgb(214,80,30)" ${O(2)}/><path d="M-50-78q8 18 22 28" stroke="rgb(120,200,150)" stroke-width="2.5" fill="none" opacity=".6"/></g>`:`<path class="bird-tail" d="M-28-22Q-56-26-58-48-40-44-22-34Z" fill="${R(p.s)}" ${O(2)}/>`;
  const body=`<ellipse cy="-22" rx="34" ry="29" fill="url(#${id}-fur)" ${O()}/><ellipse cx="9" cy="-14" rx="20" ry="17" fill="${R(p.m)}" opacity=".75"/>${chick?`<path d="M-30-10q-6 6 0 10m58-12q6 6 0 10" stroke="${R(p.s)}" stroke-width="2" fill="none" opacity=".6"/>`:''}`;
  const wing=`<g class="rig-wing" transform="translate(-16 -29)"><path d="M-8 0Q14-20 36 4 22 30-6 16Z" fill="${R(crow?p.s:p.a)}" ${O(2)}/><path d="M2 8q12 8 24 0M0 15q10 5 18 2" fill="none" stroke="rgb(255,255,255)" stroke-width="2" opacity=".35" stroke-linecap="round"/></g>`;
  const beak=duck?(m.happy||m.talk?`<path d="M38-62q22-8 32 2-12 4-32 2Z" fill="${n}" ${O(1.8)}/><path d="M38-56q20 2 28 8-14 4-28-2Z" fill="rgb(230,110,20)" ${O(1.8)}/>`:`<path d="M38-62q24-8 32 4-10 8-32 4Z" fill="${n}" ${O(1.8)}/><path d="M50-58h10" stroke="rgb(200,100,20)" stroke-width="1.5"/>`):(m.happy||m.talk?`<path d="m40-62 22 4-22 4Z" fill="${n}" ${O(1.6)}/><path d="m40-54 17 6-17 1Z" fill="rgb(220,120,30)" ${O(1.6)}/>`:`<path d="m40-63 24 8-24 7Z" fill="${n}" ${O(1.6)}/>`);
  const comb=roo||hen?`<path d="M4-78q-2-14 8-12 0-12 10-8 4-10 12-2 10 0 6 14Z" fill="rgb(226,40,48)" ${O(2)} transform="${hen?'translate(6 6) scale(.7)':''}"/>`:'';
  const wattle=roo||hen?`<path d="M42-50q4 14-4 16-6-8 0-16Z" fill="rgb(226,40,48)" ${O(1.6)} transform="${hen?'translate(10 -6) scale(.75)':''}"/>`:'';
  const cap=spa?`<path d="M-4-66Q4-84 26-82 40-78 42-66 24-74 -4-66Z" fill="rgb(110,72,44)"/><ellipse cx="22" cy="-46" rx="9" ry="6" fill="rgb(70,52,40)" opacity=".5"/>`:'';
- const tuft=roo||hen?comb:chick?`<path d="M8-80q-4-14 6-16 0 8 4 4 2-10 10-8-4 8-2 14" fill="${R(p.b)}" ${O(1.8)}/>`:type==='bird'?`<path d="M6-80q4-10 14-8" stroke="${R(p.s)}" stroke-width="3" fill="none" stroke-linecap="round"/>`:'';
+ const tuft=phx?`<path d="M4-80q-6-22 6-26 2 12 6 8 0-18 12-16-2 12 2 16 6-12 14-6-6 10-6 22" fill="rgb(255,90,70)" ${O(1.8)}/>`:roo||hen?comb:chick?`<path d="M8-80q-4-14 6-16 0 8 4 4 2-10 10-8-4 8-2 14" fill="${R(p.b)}" ${O(1.8)}/>`:type==='bird'?`<path d="M6-80q4-10 14-8" stroke="${R(p.s)}" stroke-width="3" fill="none" stroke-linecap="round"/>`:'';
  const e=m.sleep?`<path d="M18-62q7 6 14 0" fill="none" ${O(2.6)}/>`:m.joy?`<path d="M18-60q7-9 14 0" fill="none" ${O(2.8)}/>`:`<g class="rig-blink"><ellipse cx="26" cy="-62" rx="${m.scared?8:7}" ry="${m.scared?10:9}" fill="rgb(255,255,255)" ${O(2)}/><circle cx="28" cy="-61" r="${m.scared?3.4:4.8}" fill="url(#${id}-iris)"/><circle cx="28" cy="-61" r="2.4" fill="rgb(16,12,12)"/><circle cx="30" cy="-64" r="1.7" fill="rgb(255,255,255)"/></g>`;
  const brow=m.sad?`<path d="M18-74q8-2 14 4" ${O(2.2,.6)} fill="none"/>`:m.angry||m.strain?`<path d="M18-76q8 2 14 6" ${O(2.4,.7)} fill="none"/>`:'';
  const head=`<g class="rig-head">${tuft}<circle cx="18" cy="-58" r="25" fill="url(#${id}-head)" ${O()}/>${crow?'<path d="M2-70q10-8 24-6" stroke="rgb(120,150,190)" stroke-width="3" fill="none" opacity=".6" stroke-linecap="round"/>':''}${cap}${e}${brow}${beak}${wattle}<ellipse cx="33" cy="-48" rx="6" ry="3.5" fill="rgb(255,120,130)" opacity="${crow?.0:.4}"/></g>`;
@@ -163,22 +168,116 @@ function owl(id,p,m){
 const bow=(x,y)=>`<g transform="translate(${x} ${y}) rotate(-12)"><path d="M0 0-16-10-16 10Z M0 0 16-10 16 10Z" fill="rgb(255,105,150)" ${O(1.8)}/><circle r="5" fill="rgb(255,200,90)" ${O(1.6)}/></g>`;
 const apron=`<path d="M-22-46h44l7 48q-29 9-58 0Z" fill="rgb(255,250,240)" ${O(2)}/><path d="M-27-4q27 8 54 0" stroke="rgb(255,120,160)" stroke-width="4" fill="none"/><path d="M-6-24q-6-8 0-10 3-2 6 2 3-4 6-2 6 2 0 10l-6 5Z" fill="rgb(255,120,160)"/>`;
 
-window.drawToonCharacter=function(type,mood='idle'){
+const drawBase=function(type,mood='idle',pal=null){
  let mom=false;if(type.endsWith('-mom')){mom=true;type=type.slice(0,-4)}
- const id='ch'+(++serial),p=P[type]||P.bear,m=moodOf(mood),defs=grads(id,p);
+ const id='ch'+(++serial),p=pal||P[type]||P.bear,m=moodOf(mood),defs=grads(id,p);
  if(type==='owl')return `${defs}<g class="rig rig-owl mood-${mood}">${owl(id,p,m)}</g>`;
  if(type==='turtle'){const f=`url(#${id}-fur)`;return `${defs}<g class="rig rig-turtle mood-${mood}"><g class="turtle-feet"><ellipse class="turtle-foot f1" cx="-26" cy="12" rx="14" ry="10" fill="${R(p.a)}" ${O(2)}/><ellipse class="turtle-foot f2" cx="18" cy="12" rx="14" ry="10" fill="${R(p.a)}" ${O(2)}/></g><path d="M-40-2q-14 4-18-4l14-6" fill="${R(p.a)}" ${O(2)}/><path d="M-46-6Q-46-52 0-54 46-52 46-6Q0 8-46-6Z" fill="${f}" ${O(2.6)}/><path d="M-30-12Q-26-40 0-42 26-40 30-12" fill="none" stroke="${R(p.s)}" stroke-width="3" opacity=".5"/><path d="m0-44-14 12 2 16 12 6 12-6 2-16Zm-14 12-20-2m22 18-16 10m26-38 0 0m14 12 20-2m-22 18 16 10" fill="${R(p.l)}" fill-opacity=".35" stroke="${R(p.s)}" stroke-width="2.2" stroke-linejoin="round"/><path d="M-46-6Q0 8 46-6" fill="none" stroke="${R(p.m)}" stroke-width="5"/><path d="M-30-38q10-10 24-12" stroke="rgb(255,255,255)" stroke-width="4" fill="none" opacity=".35" stroke-linecap="round"/><g transform="translate(48 -14)"><g class="turtle-head"><ellipse cx="4" rx="22" ry="18" fill="${R(p.a)}" ${O()}/>${m.sleep?`<path d="M4-6q6 5 12 0" ${O(2.4)} fill="none"/>`:`<g class="rig-blink"><ellipse cx="9" cy="-6" rx="6.5" ry="7.5" fill="rgb(255,255,255)" ${O(1.8)}/><circle cx="11" cy="-5" r="4" fill="url(#${id}-iris)"/><circle cx="11" cy="-5" r="2" fill="rgb(16,12,12)"/><circle cx="12.5" cy="-7" r="1.4" fill="rgb(255,255,255)"/></g>`}<path d="M8 6q8 ${m.happy?8:5} 16 0" fill="${m.happy?'rgb(150,50,58)':'none'}" ${O(2)}/><ellipse cx="18" cy="2" rx="5" ry="3" fill="rgb(255,120,130)" opacity=".35"/></g></g></g>`}
  if(type==='ant'){const f=`url(#${id}-fur)`;return `${defs}<g class="rig rig-ant"><path class="ant-leg l1" d="M-26-10-40 16m20-24-10 26M2-10l6 28m8-32 16 26" fill="none" stroke="${INK}" stroke-width="3.5" stroke-linecap="round"/><ellipse cx="-30" cy="-18" rx="19" ry="15" fill="${f}" ${O()}/><ellipse cx="-5" cy="-22" rx="13" ry="11" fill="${f}" ${O()}/><path d="M-38-26q6-6 14-4" stroke="rgb(255,255,255)" stroke-width="3" fill="none" opacity=".4" stroke-linecap="round"/><g class="rig-head"><path class="antennae" d="M14-46 6-66m22 18 12-18" fill="none" stroke="${INK}" stroke-width="2.8" stroke-linecap="round"/><circle cx="6" cy="-66" r="3.5" fill="${R(p.b)}"/><circle cx="40" cy="-66" r="3.5" fill="${R(p.b)}"/><circle cx="22" cy="-31" r="20" fill="url(#${id}-head)" ${O()}/><g transform="translate(22 50) scale(.62)">${eye(-1,id,m)}${eye(1,id,m)}${mouth(m,-52)}</g></g></g>`}
- if(['bird','crow','duck','chick','rooster','hen','sparrow'].includes(type)){let b=bird(type,id,p,m);if(mom)b=b.replace(/<\/g>$/,bow(4,-82)+'</g>');return `${defs}<g class="rig rig-bird rig-${type} mood-${mood}">${b}</g>`}
+ if(['bird','crow','duck','chick','rooster','hen','sparrow','phoenix'].includes(type)){let b=bird(type,id,p,m);if(mom)b=b.replace(/<\/g>$/,bow(4,-82)+'</g>');return `${defs}<g class="rig rig-bird rig-${type} mood-${mood}">${b}</g>`}
  if(type.startsWith('human'))return `${defs}<g class="rig rig-human mood-${mood}">${human(type,id,p,m)}</g>`;
  const pawColor=type==='fox'?R(p.n):type==='mouse'?R(p.a):type==='pig'?R(p.s):`url(#${id}-fur)`;
  const footColor=type==='fox'?R(p.n):type==='pig'?'rgb(170,90,100)':type==='mouse'?R(p.a):type==='rabbit'?R(p.l):R(p.s);
  const belly=`<ellipse cy="-14" rx="20" ry="26" fill="${R(p.m)}" opacity=".9"/>`;
  const bodyShape=`<ellipse cy="-20" rx="${type==='pig'||type==='bear'?36:33}" ry="41" fill="url(#${id}-fur)" ${O()}/>`;
- const neck=mom?apron:['rabbit','bear','pig','mouse','cat','squirrel'].includes(type)?scarf(p.sc):'';
+ const neck=mom?apron:p.noScarf?'':['rabbit','bear','pig','mouse','cat','squirrel','goat'].includes(type)?scarf(p.sc):'';
  const face=`<path d="${headShape(type)}" fill="url(#${id}-head)" ${O()}/>${type==='rabbit'?`<path d="M-36-70q-6 8 2 14m70-14q6 8-2 14" fill="none" ${O(1.6,.5)}/>`:''}${type==='fox'?`<path d="M-16-108q16-8 32 0" stroke="${R(p.l)}" stroke-width="5" fill="none" opacity=".6" stroke-linecap="round"/>`:''}`;
  const lightRim=`<path d="M-24-104q14-10 30-8" stroke="rgb(255,255,255)" stroke-width="4" fill="none" opacity=".45" stroke-linecap="round"/>`;
  const yEyes=type==='pig'?-84:-80;
- return `${defs}<g class="rig rig-${type} mood-${mood}">${type==='lion'?mane(p):''}${back(type,id,p)}${limb(-1,id,p,{leg:true,foot:footColor})}${limb(1,id,p,{leg:true,foot:footColor})}${limb(-1,id,p,{paw:pawColor})}${bodyShape}${belly}${tufts(p)}${neck}${limb(1,id,p,{paw:pawColor})}<g class="rig-head">${ears(type,id,p)}${face}${lightRim}${blush(type==='pig'?-66:-62)}${eye(-1,id,m,13,yEyes)}${eye(1,id,m,13,yEyes)}${brows(m,yEyes-16)}${muzzle(type,p,m)}${type==='cat'?`<path d="M-8-108l3 10M0-110v11M8-108l-3 10" stroke="${R(p.stripe)}" stroke-width="3.5" stroke-linecap="round"/>`:''}${mom?bow(type==='rabbit'?20:24,type==='rabbit'?-112:-108):''}</g></g>`;
+ return `${defs}<g class="rig rig-${type} mood-${mood}">${type==='lion'?mane(p):''}${back(type,id,p)}${limb(-1,id,p,{leg:true,foot:footColor})}${limb(1,id,p,{leg:true,foot:footColor})}${limb(-1,id,p,{paw:pawColor})}${bodyShape}${belly}${p.bodyStripes?`<path d="M-30-38q10 4 12 14M30-38q-10 4-12 14M-33-14q10 2 12 12M33-14q-10 2-12 12M-14-56q4 6 2 12M14-56q-4 6-2 12" fill="none" stroke="${R(p.stripe)}" stroke-width="5" stroke-linecap="round"/>`:''}${tufts(p)}${neck}${limb(1,id,p,{paw:pawColor})}<g class="rig-head">${ears(type,id,p)}${face}${lightRim}${blush(type==='pig'?-66:-62)}${eye(-1,id,m,13,yEyes)}${eye(1,id,m,13,yEyes)}${brows(m,yEyes-16)}${muzzle(type,p,m)}${type==='cat'?`<path d="M-8-108l3 10M0-110v11M8-108l-3 10" stroke="${R(p.stripe)}" stroke-width="3.5" stroke-linecap="round"/>`:''}${mom?bow(type==='rabbit'?20:24,type==='rabbit'?-112:-108):''}</g></g>`;
+};
+
+
+/* ---------- Nhân vật cho truyện dân gian Việt Nam ---------- */
+const SKIN={l:'#ffe2c8',b:'#f7c8a0',s:'#d9a37a',m:'#ffdcc0',a:'#ef9c86',n:'#d48c6c',i:'#3a2416'};
+Object.assign(P,{
+ 'human-child2':{...P['human-child'],top:'#3d9be0',topS:'#2a6fb0',leg:'#3a4a5c'},
+ wolf:{l:'#cfd3da',b:'#9aa1ad',s:'#5f6774',m:'#f4f4f2',a:'#3a3a44',n:'#26262c',i:'#d6a21a'},
+ tiger:{l:'#ffc06a',b:'#f39a2c',s:'#c4661a',m:'#fff6e8',a:'#f6a9b5',n:'#e66f86',i:'#5f9a3a',stripe:'#3a2418',noScarf:true,bodyStripes:true},
+ goat:{l:'#ffffff',b:'#eeeae2',s:'#bdb4a4',m:'#fbf6ee',a:'#f2b8c0',n:'#9a6a6a',i:'#a87a2a',sc:'#ff8a3d'},
+ phoenix:{l:'#fff1a8',b:'#ffcf3d',s:'#e48a1a',m:'#fff6cf',a:'#ff6a4a',n:'#f2a23a',i:'#2a1a12'},
+ toad:{l:'#c8c27a',b:'#9a964f',s:'#625e2c',m:'#ece4ae',a:'#76713a',n:'#4a4520',i:'#d89a20'},
+ crab:{l:'#ff9a7a',b:'#ee5a3a',s:'#b23a22',m:'#ffd2b8',a:'#ff7a5a',n:'#7a2a18',i:'#1a1212'},
+ bee:{l:'#fff3a0',b:'#ffd23a',s:'#e0a010',m:'#fff6c8',a:'#2a2018',n:'#2a2018',i:'#2a1a12'},
+ shrimp:{l:'#ffc6a6',b:'#ff9a6e',s:'#e0663e',m:'#ffe2d0',a:'#ff8a5a',n:'#8a3a20',i:'#1a1212'},
+ tep:{l:'#fff0e2',b:'#ffd6bc',s:'#e8a682',m:'#fff6ee',a:'#ffc2a0',n:'#9a5a3a',i:'#1a1212'}
+});
+// Trang phục và kiểu tóc của các nhân vật người.
+const HUM={
+ 'human-girl':{top:'#ff8fb3',topS:'#e0628c',leg:'#ffd0de',hair:'pigtails',hairC:'#2d201a',skirt:true},
+ 'human-man':{top:'#8a6440',topS:'#664828',leg:'#3a3430',hair:'short',hairC:'#231a16'},
+ 'human-man2':{top:'#3f5f8a',topS:'#2c4466',leg:'#2e2a28',hair:'short',hairC:'#1c1412',beard:'mustache'},
+ 'human-coat':{top:'#a5643a',topS:'#7a4626',leg:'#3a3430',hair:'short',hairC:'#2a1e18',coat:true,beard:'mustache'},
+ 'human-lady':{top:'#ef7f9e',topS:'#c95a7a',leg:'#2e2a2c',hair:'bun',hairC:'#1c1414'},
+ 'human-fairy':{top:'#fff6e4',topS:'#e8dcc0',leg:'#fff6e4',hair:'long',hairC:'#1c1414',robe:true,halo:true,sash:'#ff9ab8'},
+ 'human-grandma':{top:'#7d5b6e',topS:'#5c4050',leg:'#2e2a2c',hair:'bun',hairC:'#e4e2dc',wrinkle:true,cane:true,glasses:true},
+ 'human-king':{top:'#f3b72a',topS:'#c98a10',leg:'#c98a10',hair:'short',hairC:'#1c1412',robe:true,crown:true,beard:'king',sash:'#d8402a'},
+ 'human-rich':{top:'#4a6aa6',topS:'#33508a',leg:'#f2ede0',hair:'turban',hairC:'#1a1a1e',belly:true,beard:'mustache'},
+ 'human-but':{top:'#fbf8f0',topS:'#e2dccc',leg:'#fbf8f0',hair:'elder',hairC:'#f6f4ee',robe:true,halo:true,beard:'long',staff:true},
+ 'human-thunder':{top:'#d8462e',topS:'#a42e1c',leg:'#5a2e22',hair:'spiky',hairC:'#2a2a3a',axe:true,beard:'king',sash:'#f2c23a'}
+};
+function person(type,id,p,m){
+ const c=HUM[type],top=R(c.top),topS=R(c.topS),hc=R(c.hairC);
+ const legs=c.robe?'':`${limb(-1,id,p,{leg:true,sleeve:R(c.leg),foot:'rgb(70,50,40)'})}${limb(1,id,p,{leg:true,sleeve:R(c.leg),foot:'rgb(70,50,40)'})}`;
+ const backHair=c.hair==='long'?`<path d="M-36-96Q-52-30-34-6H34Q52-30 36-96Z" fill="${hc}" ${O()}/>`:'';
+ const halo=c.halo?`<circle class="halo" cy="-82" r="54" fill="rgb(255,236,150)" opacity=".35"/><circle cy="-82" r="50" fill="none" stroke="rgb(255,214,90)" stroke-width="4" opacity=".8"/>`:'';
+ const bodyPath=c.skirt?'M-28-52Q0-62 28-52L40 8Q0 16-40 8Z':c.robe?'M-30-52Q0-62 30-52L44 22Q0 30-44 22Z':c.coat?'M-32-54Q0-64 32-54L40 12Q0 18-40 12Z':c.belly?'M-32-52Q0-62 32-52Q50-20 36 6Q0 14-36 6Q-50-20-32-52Z':'M-30-52Q0-62 30-52L34 4Q0 10-34 4Z';
+ const feet=c.robe?`<ellipse cx="-14" cy="24" rx="12" ry="6" fill="rgb(70,50,40)" ${O(1.8)}/><ellipse cx="14" cy="24" rx="12" ry="6" fill="rgb(70,50,40)" ${O(1.8)}/>`:'';
+ let deco='';
+ if(c.coat)deco=`<path d="M0-58V12" ${O(1.6,.6)}/><path d="M-14-56 0-40 14-56" fill="rgb(120,70,40)" ${O(1.8)}/>${[-30,-16,-2].map(y=>`<circle cx="6" cy="${y}" r="2.6" fill="rgb(240,210,150)"/>`).join('')}`;
+ else if(c.robe)deco=`<path d="M-12-58 0-30 12-58" fill="none" stroke="${R(c.sash||c.topS)}" stroke-width="5" stroke-linecap="round"/><path d="M-34-6Q0 2 34-6" stroke="${R(c.sash||c.topS)}" stroke-width="7" fill="none"/>${type==='human-king'?'<path d="M-10-20q10-12 20 0q-10 10-20 0Z" fill="rgb(214,64,42)" opacity=".8"/>':''}`;
+ else if(type==='human-lady'||type==='human-grandma')deco=`<path d="M-10-56q10 8 20 0" fill="none" stroke="${topS}" stroke-width="3"/>${[-40,-26,-12].map(y=>`<circle cx="0" cy="${y}" r="2.2" fill="rgb(255,240,220)"/>`).join('')}`;
+ else if(type==='human-rich')deco=`<path d="M0-58V8" ${O(1.4,.5)}/><path d="M-30-28Q0-20 30-28" stroke="rgb(240,214,120)" stroke-width="4" fill="none"/>`;
+ else deco=`<path d="M-12-56 0-44 12-56" fill="none" stroke="${topS}" stroke-width="3"/><path d="M-30-14H30" stroke="rgb(60,40,30)" stroke-width="4" opacity=".5"/>`;
+ const body=`<path d="${bodyPath}" fill="${top}" ${O()}/><path d="M18-50 30-52 ${c.robe?'44 22 30 24':'34 4 22 5'}Z" fill="${topS}" opacity=".55"/>${deco}`;
+ const arm=side=>limb(side,id,p,{sleeve:top,paw:`url(#${id}-head)`});
+ // Tóc
+ let hair='';
+ if(c.hair==='short'||c.hair==='spiky')hair=c.hair==='spiky'?`<path d="M-38-80L-44-112-26-104-20-130-6-110 4-134 14-110 26-128 30-104 44-110 38-80Q20-100 0-100T-38-80Z" fill="${hc}" ${O()}/>`:`<path d="M-37-78Q-42-116 0-118 42-116 37-78L31-94Q12-104-4-100-20-106-31-94Z" fill="${hc}" ${O()}/>`;
+ else if(c.hair==='bun')hair=`<circle cy="-120" r="15" fill="${hc}" ${O()}/><path d="M-37-80Q-40-116 0-117 40-116 37-80L30-96Q0-108-30-96Z" fill="${hc}" ${O()}/>${type==='human-lady'?'<path d="M10-128l14-8" stroke="rgb(240,190,60)" stroke-width="3.5" stroke-linecap="round"/>':''}`;
+ else if(c.hair==='long')hair=`<path d="M-38-74Q-42-118 0-120 42-118 38-74L32-96Q0-110-32-96Z" fill="${hc}" ${O()}/><path d="M-4-120l-10-14 14 6 12-10-2 16Z" fill="rgb(255,214,90)" ${O(1.6)}/>`;
+ else if(c.hair==='pigtails')hair=`${[-1,1].map(s=>`<circle cx="${s*42}" cy="-92" r="13" fill="${hc}" ${O()}/><circle cx="${s*36}" cy="-102" r="5" fill="rgb(255,110,150)"/>`).join('')}<path d="M-38-74Q-44-118 0-120 44-118 38-74L31-92Q14-104-6-98-20-108-31-92Z" fill="${hc}" ${O()}/>`;
+ else if(c.hair==='elder')hair=`<path d="M-37-80Q-40-114 0-116 40-114 37-80L30-96Q18-104 0-104T-30-96Z" fill="${hc}" ${O()}/>`;
+ else if(c.hair==='turban')hair=`<path d="M-39-82Q-42-120 0-122 42-120 39-82Q0-98-39-82Z" fill="${hc}" ${O()}/><path d="M-36-92Q0-108 36-92M-34-102Q0-118 34-102" fill="none" stroke="rgb(90,90,100)" stroke-width="2.5"/>`;
+ const crown=c.crown?`<path d="M-30-108-34-140-18-124-8-146 0-126 8-146 18-124 34-140 30-108Z" fill="rgb(255,206,60)" ${O(2.2)}/><circle cy="-120" r="5" fill="rgb(214,50,60)"/><path d="M-30-108H30" stroke="rgb(214,150,30)" stroke-width="4"/>`:'';
+ const beard=c.beard==='long'?`<path d="M-24-60Q-22-6 0 4 22-6 24-60Q12-48 0-50-12-48-24-60Z" fill="${hc}" ${O()}/>`:c.beard==='king'?`<path d="M-14-46Q0-16 14-46Q6-40 0-42-6-40-14-46Z" fill="${hc}" ${O(1.8)}/><path d="M-16-58q8-6 16-1 8-5 16 1-8 5-16 1-8 4-16-1Z" fill="${hc}"/>`:c.beard==='mustache'?`<path d="M-17-56q8-7 17-2 9-5 17 2-9 6-17 2-8 4-17-2Z" fill="${c.hair==='turban'?'rgb(40,36,36)':hc}"/>`:'';
+ const glasses=c.glasses?`<g fill="none" stroke="rgb(120,90,60)" stroke-width="2.2"><circle cx="-13" cy="-80" r="9"/><circle cx="13" cy="-80" r="9"/><path d="M-4-80h8"/></g>`:'';
+ const wrinkle=c.wrinkle?`<path d="M-30-66q4 4 8 2M30-66q-4 4-8 2M-10-100q10-4 20 0" fill="none" ${O(1.4,.4)}/>`:'';
+ const ears=`<ellipse cx="-36" cy="-74" rx="6" ry="9" fill="url(#${id}-head)" ${O(2)}/><ellipse cx="36" cy="-74" rx="6" ry="9" fill="url(#${id}-head)" ${O(2)}/>`;
+ const face=`<path d="${headShape('human')}" fill="url(#${id}-head)" ${O()}/>${blush(-62,22,7)}`;
+ const mouthY=c.beard==='long'?-52:-50;
+ const props=(c.cane?`<path d="M-34-14 -44 28" stroke="rgb(120,80,40)" stroke-width="6" stroke-linecap="round"/><path d="M-34-14q-6-10 4-12" stroke="rgb(120,80,40)" stroke-width="6" fill="none" stroke-linecap="round"/>`:'')
+  +(c.staff?`<path d="M44-110V28" stroke="rgb(150,100,50)" stroke-width="6" stroke-linecap="round"/><circle cx="44" cy="-114" r="9" fill="rgb(120,200,140)" ${O(1.6)}/>`:'')
+  +(c.axe?`<g transform="translate(34 -20) rotate(-30)"><path d="M0 0V-70" stroke="rgb(130,90,50)" stroke-width="6" stroke-linecap="round"/><path d="M0-70l22-10 8 18-8 18-22-8Z" fill="rgb(255,214,60)" ${O(2)}/><path d="M8-68l6 10-6 4 6 10" stroke="rgb(255,255,255)" stroke-width="2.5" fill="none"/></g>`:'');
+ return `${halo}${backHair}${legs}${arm(-1)}${body}${feet}${arm(1)}${props}<g class="rig-head">${ears}${face}${wrinkle}${hair}${crown}${eye(-1,id,m,13,-80,.9)}${eye(1,id,m,13,-80,.9)}${glasses}${brows(m,-95)}${beard}${mouth(m,mouthY,.8)}</g>`;
+}
+function toad(id,p,m){
+ const f=`url(#${id}-fur)`;
+ return `<g class="rig-leg left"><path d="M-30-6Q-62-10-58 14-40 22-22 14Z" fill="${f}" ${O()}/></g><g class="rig-leg right"><path d="M30-6Q62-10 58 14 40 22 22 14Z" fill="${f}" ${O()}/></g><ellipse cy="-26" rx="48" ry="36" fill="${f}" ${O()}/><ellipse cy="-12" rx="32" ry="18" fill="${R(p.m)}" opacity=".9"/>${[[-28,-40],[-12,-50],[22,-44],[30,-26],[-34,-20],[8,-34]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="4.5" fill="${R(p.s)}" opacity=".55"/>`).join('')}<path d="M-20 12v8m-6 0h12M20 12v8m-6 0h12" stroke="${R(p.s)}" stroke-width="4" stroke-linecap="round"/><g class="rig-head">${[-1,1].map(s=>`<circle cx="${s*20}" cy="-58" r="15" fill="${f}" ${O()}/>`).join('')}${eye(-1,id,m,20,-60,.85)}${eye(1,id,m,20,-60,.85)}${m.happy||m.talk?`<g class="rig-mouth"><path d="M-30-38Q0-14 30-38Q0-28-30-38Z" fill="rgb(150,50,58)" ${O(2)}/></g>`:`<g class="rig-mouth"><path d="M-30-38Q0-26 30-38" fill="none" ${O(2.6)}/></g>`}${blush(-40,30,6)}</g>`;
+}
+function crab(id,p,m){
+ const f=`url(#${id}-fur)`,claw=s=>`<g transform="translate(${s*40} -36)"><g class="rig-arm ${s<0?'left':'right'}"><path d="M0 0Q${s*14}-18 ${s*16}-34" fill="none" stroke="${INK}" stroke-opacity=".8" stroke-width="12" stroke-linecap="round"/><path d="M0 0Q${s*14}-18 ${s*16}-34" fill="none" stroke="${R(p.b)}" stroke-width="8" stroke-linecap="round"/><path d="M${s*16}-34Q${s*40}-46 ${s*30}-70Q${s*18}-58 ${s*22}-52Q${s*4}-60 ${s*6}-44Q${s*4}-30 ${s*16}-34Z" fill="${f}" ${O(2.2)}/></g></g>`;
+ return `${[-1,1].map(s=>[0,1,2].map(k=>`<path d="M${s*30} ${-18+k*6}Q${s*(48+k*4)} ${-10+k*8} ${s*(54+k*2)} ${14+k*2}" fill="none" stroke="${R(p.s)}" stroke-width="5" stroke-linecap="round"/>`).join('')).join('')}${claw(-1)}${claw(1)}<ellipse cy="-24" rx="46" ry="28" fill="${f}" ${O()}/><path d="M-30-34q30-16 60 0" fill="none" stroke="rgb(255,200,180)" stroke-width="4" opacity=".6" stroke-linecap="round"/><g class="rig-head"><path d="M-14-44v-24M14-44v-24" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>${eye(-1,id,m,14,-72,.7)}${eye(1,id,m,14,-72,.7)}${mouth(m,-22,.7)}${blush(-28,26,6)}</g>`;
+}
+function bee(id,p,m){
+ return `<g class="rig-wing"><ellipse cx="-10" cy="-86" rx="16" ry="24" fill="rgb(220,240,255)" opacity=".85" ${O(1.6,.5)} transform="rotate(-20 -10 -86)"/><ellipse cx="10" cy="-88" rx="14" ry="22" fill="rgb(235,248,255)" opacity=".85" ${O(1.6,.5)} transform="rotate(18 10 -88)"/></g><ellipse cx="-6" cy="-52" rx="30" ry="22" fill="url(#${id}-fur)" ${O()}/><path d="M-22-70q4 18 0 36M-8-74q4 22 0 44M6-72q4 20 0 40" stroke="${R(p.a)}" stroke-width="7" fill="none"/><path d="M-36-52l-12 4 12 4Z" fill="${R(p.a)}"/><g class="rig-head"><circle cx="30" cy="-58" r="17" fill="url(#${id}-head)" ${O()}/><path d="M26-74q-4-14-10-16M36-74q4-14 12-14" stroke="${INK}" stroke-width="2.5" fill="none" stroke-linecap="round"/><g transform="translate(30 4) scale(.55)">${eye(-1,id,m,13,-112)}${eye(1,id,m,13,-112)}${mouth(m,-86)}</g></g>`;
+}
+function shrimp(id,p,m){
+ const f=`url(#${id}-fur)`;
+ const segs=[[-34,-30,13],[-22,-38,15],[-6,-42,16],[10,-40,16],[24,-34,15]].map(([x,y,r])=>`<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r*.8}" fill="${f}" ${O(2)}/>`).join('');
+ return `${[-24,-10,4,16].map(x=>`<path d="M${x}-26l-3 16m8-16 3 16" stroke="${R(p.s)}" stroke-width="3" stroke-linecap="round"/>`).join('')}<g class="rig-tail"><path d="M-44-28Q-62-40-66-24-58-20-60-8-48-16-44-20Z" fill="${R(p.a)}" ${O(2)}/></g>${segs}<g class="rig-head"><ellipse cx="38" cy="-36" rx="18" ry="15" fill="url(#${id}-head)" ${O()}/><path d="M50-44Q70-80 96-86M48-40Q76-64 104-60" stroke="${R(p.s)}" stroke-width="2.5" fill="none" stroke-linecap="round"/><g transform="translate(40 12) scale(.6)">${eye(1,id,m,0,-80)}${mouth(m,-58,.7)}</g></g>`;
+}
+window.drawToonCharacter=function(type,mood='idle'){
+ if(type==='wolf')return drawBase('fox',mood,P.wolf).replace('rig-fox','rig-fox rig-wolf');
+ if(type==='tiger')return drawBase('cat',mood,P.tiger).replace('rig-cat','rig-cat rig-tiger');
+ if(type==='mouse-old')return drawBase('mouse',mood).replace(/<\/g><\/g>$/,`<g fill="none" stroke="rgb(90,70,50)" stroke-width="2.4"><circle cx="-13" cy="-80" r="10"/><circle cx="13" cy="-80" r="10"/><path d="M-3-80h6"/></g><path d="M-20-98q7-4 14 0M6-98q7-4 14 0" stroke="rgb(250,250,250)" stroke-width="4" stroke-linecap="round"/></g></g>`);
+ const id='ch'+(++serial),m=moodOf(mood);
+ if(HUM[type]){const p={...SKIN};return `${grads(id,p)}<g class="rig rig-human mood-${mood}">${person(type,id,p,m)}</g>`}
+ const p=P[type];
+ if(type==='toad')return `${grads(id,p)}<g class="rig rig-toad mood-${mood}">${toad(id,p,m)}</g>`;
+ if(type==='crab')return `${grads(id,p)}<g class="rig rig-crab mood-${mood}">${crab(id,p,m)}</g>`;
+ if(type==='bee')return `${grads(id,p)}<g class="rig rig-bee mood-${mood}">${bee(id,p,m)}</g>`;
+ if(type==='shrimp'||type==='tep')return `${grads(id,p)}<g class="rig rig-shrimp mood-${mood}">${shrimp(id,p,m)}</g>`;
+ return drawBase(type,mood);
 };
 })();

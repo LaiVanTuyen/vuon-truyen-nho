@@ -55,7 +55,16 @@ function blip(clip){if(!state.voice||!clip?.f)return;cancelSpeech();audio.src=cl
 
 /* ---------- Trang truyện ---------- */
 let story=null,scene=0,seg=0,playing=false,started=false,paused=null;
-function segments(s,i){const n=narration(s.id);if(n?.scenes?.[i])return n.scenes[i];return (s.scenes[i][1].match(/[^.!?…]+[.!?…]+|[^.!?…]+$/g)||[s.scenes[i][1]]).map(t=>({t:t.trim()}))}
+// Chỉ dùng file giọng đọc khi câu chữ trong file khớp đúng lời hiện tại (tránh đọc lời cũ sau khi sửa truyện).
+const same=(a,b)=>String(a||'').replace(/\s+/g,' ').trim()===String(b||'').replace(/\s+/g,' ').trim();
+const clipFor=(c,text)=>c&&same(c.t,text)?c:null;
+const segCache=new Map();
+function segments(s,i){const key=s.id+'#'+i;if(segCache.has(key))return segCache.get(key);
+ const parts=window.SPEECH?SPEECH.split(s.scenes[i][1],s.category==='Đồng dao & thơ'):(s.scenes[i][1].match(/[^.!?…]+[.!?…]+|[^.!?…]+$/g)||[s.scenes[i][1]]).map(t=>({t:t.trim()}));
+ const rec=narration(s.id)?.scenes?.[i];
+ const ok=rec&&rec.length===parts.length&&rec.every((c,k)=>same(c.t,parts[k].t));
+ const list=ok?rec.map((c,k)=>({...parts[k],...c})):parts;
+ segCache.set(key,list);return list}
 function sceneSeconds(s,i){return segments(s,i).reduce((n,c)=>n+(c.d||wordsTime(c.t)/1000)+.3,1.5)}
 
 function openStory(id){
@@ -116,17 +125,18 @@ function begin(){
  if(scene!==0){scene=0;drawScene(true)}saveProgress();
  const n=narration(story.id);
  showSub(story.title);
- say(n?.intro,story.title,()=>runScene(0));
+ say(clipFor(n?.intro,story.title+'.'),story.title,()=>runScene(0));
 }
 function showSub(text,who=null){const el=$('#subtitle');if(!el)return;el.classList.remove('show');void el.offsetWidth;el.classList.toggle('dialogue',who!==null);el.innerHTML=who!==null?`${who?`<b class="who">${esc(who)}</b>`:""}<span>“${esc(text)}”</span>`:esc(text);el.classList.add('show')}
 // Lời thoại: nhân vật đang nói mấp máy miệng.
-const WHO={'Thỏ Mẹ':'rabbit-mom','Gấu Mẹ':'bear-mom','Heo Mẹ':'pig-mom','Vịt Mẹ':'duck-mom','Gà Mẹ':'hen-mom','Mẹ':'rabbit-mom','Thỏ Con':'rabbit','Thỏ':'rabbit','Thỏ Trắng':'rabbit','Thỏ Nâu':'rabbit','Gấu Con':'bear','Gấu':'bear','Bác Gấu':'bear','Bác':'bear','Cáo':'fox','Chuột':'mouse','Sư Tử':'lion','Gà Trống':'rooster','Vịt Con':'duck','Gà Con':'chick','Sóc':'squirrel','Heo':'pig','Heo Con':'pig','Ông':'human-elder','Chim Sẻ':'sparrow','Rùa':'turtle','Mèo':'cat','Kiến':'ant','Quạ':'crow'};
-function setTalking(who){all('#stage .actor.talking').forEach(x=>x.classList.remove('talking'));const t=who&&WHO[who];if(!t)return;const list=all('#stage .actor[data-c="'+t+'"]');(list.find(x=>x.querySelector('.rig-mouth'))||list[0])?.classList.add('talking')}
+function setTalking(c){all('#stage .actor.talking').forEach(x=>x.classList.remove('talking'));if(!c)return;
+ const chars=c.chars?.length?c.chars:(window.SPEECH&&c.who?SPEECH.speakerOf(c.who).chars:[]);
+ for(const t of chars){const list=all('#stage .actor[data-c="'+t+'"]');const a=list.find(x=>x.querySelector('.rig-mouth'))||list[0];if(a){a.classList.add('talking');return}}}
 function runScene(from=0){
  if(!playing)return;const list=segments(story,scene);seg=from;
  if(seg>=list.length){waitTimer=setTimeout(()=>{if(!playing)return;scene<story.scenes.length-1?goScene(scene+1,true):ending()},900);return}
- const c=list[seg];showSub(c.t,c.say?(c.who||''):null);setTalking(c.say&&state.voice?c.who:'');prefetch(list[seg+1]||segments(story,Math.min(scene+1,story.scenes.length-1))[0]);segStart=performance.now();segDur=(c.d||wordsTime(c.t)/1000)*1000;tick();
- say(c,c.t,()=>{setTalking('');runScene(seg+1)});
+ const c=list[seg];showSub(c.t,c.say?(c.who||''):null);setTalking(c.say&&state.voice?c:null);prefetch(list[seg+1]||segments(story,Math.min(scene+1,story.scenes.length-1))[0]);segStart=performance.now();segDur=(c.d||wordsTime(c.t)/1000)*1000;tick();
+ say(c,c.t,()=>{setTalking(null);runScene(seg+1)});
 }
 function goScene(i,auto=false){
  if(!story)return;i=Math.max(0,Math.min(i,story.scenes.length-1));cancelSpeech();
@@ -141,14 +151,17 @@ function ending(){
  cancelSpeech();playing=false;sync();music.stop();const n=narration(story.id);state.seen[story.id]=true;state.progress[story.id]={scene:0,done:true};persist();const nextStory=STORIES[(STORIES.indexOf(story)+1)%STORIES.length];
  overlay(`<div class="end-card"><div class="end-badge">★</div><div class="start-title small">Hết truyện!</div><p>${esc(story.moral)}</p><div class="end-actions"><button class="start-btn" id="endQuiz">Trả lời câu hỏi ★</button><button class="ghost-btn" id="endReplay">↻ Xem lại</button></div><a class="next-link" href="#/truyen/${nextStory.id}">Truyện tiếp theo: <b>${esc(nextStory.title)}</b> →</a></div>`,'end');
  $('#endQuiz').onclick=startQuiz;$('#endReplay').onclick=()=>{overlay('');scene=0;drawScene(true);playing=true;sync();if(state.music)music.start();runScene(0)};
- say(n?.moral,story.moral,null);
+ say(clipFor(n?.moral,'Bé học được gì? '+story.moral),story.moral,null);
 }
 
 /* ---------- Câu hỏi ---------- */
 let qi=0,score=0,tried=false,locked=false;
 function startQuiz(){if(!story)return;cancelSpeech();playing=false;music.stop();sync();qi=0;score=0;$('#player').scrollIntoView({behavior:'smooth',block:'center'});showQuestion(true)}
 function showQuestion(intro=false){
- tried=false;locked=false;const q=story.quiz[qi],nq=narration(story.id)?.quiz?.[qi];
+ tried=false;locked=false;const q0=story.quiz[qi],nq0=narration(story.id)?.quiz?.[qi];
+ // Tráo thứ tự đáp án mỗi lần hỏi để bé không đoán theo vị trí.
+ const order=q0[1].map((_,k)=>k);for(let k=order.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[order[k],order[j]]=[order[j],order[k]]}
+ const q=[q0[0],order.map(k=>q0[1][k]),order.indexOf(q0[2])],nq={q:clipFor(nq0?.q,q0[0]),a:order.map(k=>clipFor(nq0?.a?.[k],q0[1][k]))};
  overlay(`<div class="quiz-card"><div class="quiz-top"><span>Câu ${qi+1}/${story.quiz.length}</span><button class="icon-x" id="quizClose" aria-label="Đóng câu hỏi">×</button></div><h3>${esc(q[0])}</h3><div class="answers">${q[1].map((a,i)=>`<button class="answer" data-a="${i}"><b>${'ABC'[i]}</b>${esc(a)}</button>`).join('')}</div><p class="feedback" id="feedback" role="status"></p><button class="start-btn" id="nextQ" hidden>${qi===story.quiz.length-1?'Xem kết quả ★':'Câu tiếp theo →'}</button></div>`,'quiz');
  $('#quizClose').onclick=()=>{cancelSpeech();overlay('')};
  // Đọc câu hỏi rồi lần lượt các đáp án, làm nổi đáp án đang được đọc.
