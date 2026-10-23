@@ -205,27 +205,29 @@ Object.assign(P,{
 // Trang phục và kiểu tóc của các nhân vật người.
 const HUM={
  'human-girl':{top:'#ff8fb3',topS:'#e0628c',leg:'#ffd0de',hair:'pigtails',hairC:'#2d201a',skirt:true},
- 'human-man':{top:'#8a6440',topS:'#664828',leg:'#3a3430',hair:'short',hairC:'#231a16'},
- 'human-man2':{top:'#3f5f8a',topS:'#2c4466',leg:'#2e2a28',hair:'short',hairC:'#1c1412',beard:'mustache'},
+ 'human-man':{top:'#8a5a34',topS:'#6a4224',leg:'#2e2a28',hair:'short',hairC:'#231a16',hat:'khanrau',sash:'#c9a24a',farmer:true},
+ 'human-boy':{top:'#a8743e',topS:'#7a5230',leg:'#3a3430',hair:'choam',hairC:'#231a16',farmer:true,short:true},
+ 'human-man2':{top:'#3f5f8a',topS:'#2c4466',leg:'#2e2a28',hair:'turban',hairC:'#1c1412',beard:'mustache',robe:true,sash:'#2c4466'},
  'human-coat':{top:'#a5643a',topS:'#7a4626',leg:'#3a3430',hair:'short',hairC:'#2a1e18',coat:true,beard:'mustache'},
- 'human-lady':{top:'#ef7f9e',topS:'#c95a7a',leg:'#2e2a2c',hair:'bun',hairC:'#1c1414'},
- 'human-fairy':{top:'#fff6e4',topS:'#e8dcc0',leg:'#fff6e4',hair:'long',hairC:'#1c1414',robe:true,halo:true,sash:'#ff9ab8'},
- 'human-grandma':{top:'#7d5b6e',topS:'#5c4050',leg:'#2e2a2c',hair:'bun',hairC:'#e4e2dc',wrinkle:true,cane:true,glasses:true},
- 'human-king':{top:'#f3b72a',topS:'#c98a10',leg:'#c98a10',hair:'short',hairC:'#1c1412',robe:true,crown:true,beard:'king',sash:'#d8402a'},
- 'human-rich':{top:'#4a6aa6',topS:'#33508a',leg:'#f2ede0',hair:'turban',hairC:'#1a1a1e',belly:true,beard:'mustache'},
+ 'human-lady':{top:'#a8583e',topS:'#7e3e2a',leg:'#2e2a2c',hair:'bun',hairC:'#1c1414',hat:'moquai',tuthan:true,yem:'#e8443a',sash:'#4fae7a',robe:true},
+ 'human-fairy':{top:'#fff4f6',topS:'#f2d2dc',leg:'#fff6e4',hair:'long',hairC:'#1c1414',robe:true,halo:true,sash:'#ff8ab0',aodai:true},
+ 'human-grandma':{top:'#7a5440',topS:'#5a3c2c',leg:'#2e2a2c',hair:'bun',hairC:'#e4e2dc',hat:'khanvan',wrinkle:true,cane:true,glasses:true,robe:true,sash:'#4a6a8a'},
+ 'human-king':{top:'#f3b72a',topS:'#c98a10',leg:'#c98a10',hair:'short',hairC:'#1c1412',robe:true,hat:'binhthien',beard:'king',sash:'#d8402a',dragon:true},
+ 'human-rich':{top:'#4a6aa6',topS:'#33508a',leg:'#f2ede0',hair:'turban',hairC:'#1a1a1e',belly:true,beard:'mustache',fan:true},
  'human-but':{top:'#fbf8f0',topS:'#e2dccc',leg:'#fbf8f0',hair:'elder',hairC:'#f6f4ee',robe:true,halo:true,beard:'long',staff:true},
  'human-thunder':{top:'#d8462e',topS:'#a42e1c',leg:'#5a2e22',hair:'spiky',hairC:'#2a2a3a',axe:true,beard:'king',sash:'#f2c23a'}
 };
 function person(type,id,p,m){
  const c=HUM[type],top=R(c.top),topS=R(c.topS),hc=R(c.hairC);
- const legs=c.robe?'':`${limb(-1,id,p,{leg:true,sleeve:R(c.leg),foot:'rgb(70,50,40)'})}${limb(1,id,p,{leg:true,sleeve:R(c.leg),foot:'rgb(70,50,40)'})}`;
+ const legs=c.robe?'':c.farmer?`${limb(-1,id,p,{leg:true,sleeve:R(c.leg),foot:`url(#${id}-head)`})}${limb(1,id,p,{leg:true,sleeve:R(c.leg),foot:`url(#${id}-head)`})}`:`${limb(-1,id,p,{leg:true,sleeve:R(c.leg),foot:'rgb(70,50,40)'})}${limb(1,id,p,{leg:true,sleeve:R(c.leg),foot:'rgb(70,50,40)'})}`;
  const backHair=c.hair==='long'?`<path d="M-36-96Q-52-30-34-6H34Q52-30 36-96Z" fill="${hc}" ${O()}/>`:'';
  const halo=c.halo?`<circle class="halo" cy="-82" r="54" fill="rgb(255,236,150)" opacity=".35"/><circle cy="-82" r="50" fill="none" stroke="rgb(255,214,90)" stroke-width="4" opacity=".8"/>`:'';
  const bodyPath=c.skirt?'M-28-52Q0-62 28-52L40 8Q0 16-40 8Z':c.robe?'M-30-52Q0-62 30-52L44 22Q0 30-44 22Z':c.coat?'M-32-54Q0-64 32-54L40 12Q0 18-40 12Z':c.belly?'M-32-52Q0-62 32-52Q50-20 36 6Q0 14-36 6Q-50-20-32-52Z':'M-30-52Q0-62 30-52L34 4Q0 10-34 4Z';
  const feet=c.robe?`<ellipse cx="-14" cy="24" rx="12" ry="6" fill="rgb(70,50,40)" ${O(1.8)}/><ellipse cx="14" cy="24" rx="12" ry="6" fill="rgb(70,50,40)" ${O(1.8)}/>`:'';
  let deco='';
  if(c.coat)deco=`<path d="M0-58V12" ${O(1.6,.6)}/><path d="M-14-56 0-40 14-56" fill="rgb(120,70,40)" ${O(1.8)}/>${[-30,-16,-2].map(y=>`<circle cx="6" cy="${y}" r="2.6" fill="rgb(240,210,150)"/>`).join('')}`;
- else if(c.robe)deco=`<path d="M-12-58 0-30 12-58" fill="none" stroke="${R(c.sash||c.topS)}" stroke-width="5" stroke-linecap="round"/><path d="M-34-6Q0 2 34-6" stroke="${R(c.sash||c.topS)}" stroke-width="7" fill="none"/>${type==='human-king'?'<path d="M-10-20q10-12 20 0q-10 10-20 0Z" fill="rgb(214,64,42)" opacity=".8"/>':''}`;
+ else if(c.robe)deco=`<path d="M-12-58 0-30 12-58" fill="none" stroke="${R(c.sash||c.topS)}" stroke-width="5" stroke-linecap="round"/><path d="M-34-6Q0 2 34-6" stroke="${R(c.sash||c.topS)}" stroke-width="7" fill="none"/>${c.dragon?'<circle cx="0" cy="-24" r="14" fill="none" stroke="rgb(214,64,42)" stroke-width="3"/><path d="M-8-28q6-8 12-2 6 4 2 10-6 2-6-4" fill="none" stroke="rgb(214,64,42)" stroke-width="2.5"/><circle cx="-24" cy="6" r="6" fill="none" stroke="rgb(214,64,42)" stroke-width="2"/><circle cx="24" cy="6" r="6" fill="none" stroke="rgb(214,64,42)" stroke-width="2"/>':''}${c.aodai?'<path d="M-6-58Q0-40 6-58" stroke="rgb(255,140,170)" stroke-width="3" fill="none"/><path d="M-20 0q20 10 40 0" stroke="rgb(255,190,210)" stroke-width="3" fill="none"/>':''}`;
+ else if(c.tuthan)deco=`<path d="M-12-56Q0-60 12-56L10-24H-10Z" fill="${R(c.yem)}" ${O(1.6)}/><path d="M-30-52-12-56-10-24-30 0Z" fill="${topS}" opacity=".5"/><path d="M-32-18Q0-10 32-18" stroke="${R(c.sash)}" stroke-width="7" fill="none"/><path d="M18-16l6 26" stroke="${R(c.sash)}" stroke-width="5" stroke-linecap="round"/>`;
  else if(type==='human-lady'||type==='human-grandma')deco=`<path d="M-10-56q10 8 20 0" fill="none" stroke="${topS}" stroke-width="3"/>${[-40,-26,-12].map(y=>`<circle cx="0" cy="${y}" r="2.2" fill="rgb(255,240,220)"/>`).join('')}`;
  else if(type==='human-rich')deco=`<path d="M0-58V8" ${O(1.4,.5)}/><path d="M-30-28Q0-20 30-28" stroke="rgb(240,214,120)" stroke-width="4" fill="none"/>`;
  else deco=`<path d="M-12-56 0-44 12-56" fill="none" stroke="${topS}" stroke-width="3"/><path d="M-30-14H30" stroke="rgb(60,40,30)" stroke-width="4" opacity=".5"/>`;
@@ -236,9 +238,14 @@ function person(type,id,p,m){
  if(c.hair==='short'||c.hair==='spiky')hair=c.hair==='spiky'?`<path d="M-38-80L-44-112-26-104-20-130-6-110 4-134 14-110 26-128 30-104 44-110 38-80Q20-100 0-100T-38-80Z" fill="${hc}" ${O()}/>`:`<path d="M-37-78Q-42-116 0-118 42-116 37-78L31-94Q12-104-4-100-20-106-31-94Z" fill="${hc}" ${O()}/>`;
  else if(c.hair==='bun')hair=`<circle cy="-120" r="15" fill="${hc}" ${O()}/><path d="M-37-80Q-40-116 0-117 40-116 37-80L30-96Q0-108-30-96Z" fill="${hc}" ${O()}/>${type==='human-lady'?'<path d="M10-128l14-8" stroke="rgb(240,190,60)" stroke-width="3.5" stroke-linecap="round"/>':''}`;
  else if(c.hair==='long')hair=`<path d="M-38-74Q-42-118 0-120 42-118 38-74L32-96Q0-110-32-96Z" fill="${hc}" ${O()}/><path d="M-4-120l-10-14 14 6 12-10-2 16Z" fill="rgb(255,214,90)" ${O(1.6)}/>`;
+ else if(c.hair==='choam')hair=`<path d="M-34-92Q0-122 34-92" fill="none" stroke="rgb(120,90,70)" stroke-width="2" opacity=".35"/><path d="M-6-116q-2-16 8-18 10 0 8 14-6 8-16 4Z" fill="${hc}" ${O(1.8)}/>`;
  else if(c.hair==='pigtails')hair=`${[-1,1].map(s=>`<circle cx="${s*42}" cy="-92" r="13" fill="${hc}" ${O()}/><circle cx="${s*36}" cy="-102" r="5" fill="rgb(255,110,150)"/>`).join('')}<path d="M-38-74Q-44-118 0-120 44-118 38-74L31-92Q14-104-6-98-20-108-31-92Z" fill="${hc}" ${O()}/>`;
  else if(c.hair==='elder')hair=`<path d="M-37-80Q-40-114 0-116 40-114 37-80L30-96Q18-104 0-104T-30-96Z" fill="${hc}" ${O()}/>`;
  else if(c.hair==='turban')hair=`<path d="M-39-82Q-42-120 0-122 42-120 39-82Q0-98-39-82Z" fill="${hc}" ${O()}/><path d="M-36-92Q0-108 36-92M-34-102Q0-118 34-102" fill="none" stroke="rgb(90,90,100)" stroke-width="2.5"/>`;
+ const hat=c.hat==='khanrau'?`<path d="M-38-88Q-40-108 0-110 40-108 38-88Q0-98-38-88Z" fill="rgb(122,84,52)" ${O()}/><path d="M-36-94Q0-104 36-94" stroke="rgb(160,120,80)" stroke-width="3" fill="none"/><path d="M30-98l14-10-2 14Z" fill="rgb(122,84,52)" ${O(1.6)}/>`
+  :c.hat==='moquai'?`<path d="M-42-78Q-46-118 0-124 46-118 42-78L30-84Q0-100-30-84Z" fill="rgb(30,26,30)" ${O()}/><path d="M0-124 0-140 12-126Z" fill="rgb(30,26,30)" ${O(1.6)}/><path d="M-30-86Q0-98 30-86" stroke="rgb(80,70,80)" stroke-width="2" fill="none"/>`
+  :c.hat==='khanvan'?`<path d="M-38-92Q0-118 38-92L36-82Q0-104-36-82Z" fill="rgb(40,34,40)" ${O()}/><path d="M-34-90Q0-108 34-90" stroke="rgb(90,80,90)" stroke-width="2" fill="none"/>`
+  :c.hat==='binhthien'?`<path d="M-26-106h52l-4-22h-44Z" fill="rgb(40,30,30)" ${O(2)}/><rect x="-46" y="-136" width="92" height="10" rx="3" fill="rgb(40,30,30)" ${O(2)}/>${[-40,-26,-12,12,26,40].map(x=>`<path d="M${x}-126v18" stroke="rgb(230,180,60)" stroke-width="2"/><circle cx="${x}" cy="-106" r="2.6" fill="rgb(214,60,50)"/>`).join('')}<circle cy="-117" r="5" fill="rgb(240,200,70)"/>`:'';
  const crown=c.crown?`<path d="M-30-108-34-140-18-124-8-146 0-126 8-146 18-124 34-140 30-108Z" fill="rgb(255,206,60)" ${O(2.2)}/><circle cy="-120" r="5" fill="rgb(214,50,60)"/><path d="M-30-108H30" stroke="rgb(214,150,30)" stroke-width="4"/>`:'';
  const beard=c.beard==='long'?`<path d="M-24-60Q-22-6 0 4 22-6 24-60Q12-48 0-50-12-48-24-60Z" fill="${hc}" ${O()}/>`:c.beard==='king'?`<path d="M-14-46Q0-16 14-46Q6-40 0-42-6-40-14-46Z" fill="${hc}" ${O(1.8)}/><path d="M-16-58q8-6 16-1 8-5 16 1-8 5-16 1-8 4-16-1Z" fill="${hc}"/>`:c.beard==='mustache'?`<path d="M-17-56q8-7 17-2 9-5 17 2-9 6-17 2-8 4-17-2Z" fill="${c.hair==='turban'?'rgb(40,36,36)':hc}"/>`:'';
  const glasses=c.glasses?`<g fill="none" stroke="rgb(120,90,60)" stroke-width="2.2"><circle cx="-13" cy="-80" r="9"/><circle cx="13" cy="-80" r="9"/><path d="M-4-80h8"/></g>`:'';
@@ -248,8 +255,9 @@ function person(type,id,p,m){
  const mouthY=c.beard==='long'?-52:-50;
  const props=(c.cane?`<path d="M-34-14 -44 28" stroke="rgb(120,80,40)" stroke-width="6" stroke-linecap="round"/><path d="M-34-14q-6-10 4-12" stroke="rgb(120,80,40)" stroke-width="6" fill="none" stroke-linecap="round"/>`:'')
   +(c.staff?`<path d="M44-110V28" stroke="rgb(150,100,50)" stroke-width="6" stroke-linecap="round"/><circle cx="44" cy="-114" r="9" fill="rgb(120,200,140)" ${O(1.6)}/>`:'')
+  +(c.fan?`<g transform="translate(34 -16) rotate(20)"><path d="M0 0-18-34Q0-44 18-34Z" fill="rgb(240,214,120)" ${O(1.8)}/><path d="M0 0-9-38M0 0V-40M0 0 9-38" stroke="rgb(170,130,60)" stroke-width="1.5"/></g>`:'')
   +(c.axe?`<g transform="translate(34 -20) rotate(-30)"><path d="M0 0V-70" stroke="rgb(130,90,50)" stroke-width="6" stroke-linecap="round"/><path d="M0-70l22-10 8 18-8 18-22-8Z" fill="rgb(255,214,60)" ${O(2)}/><path d="M8-68l6 10-6 4 6 10" stroke="rgb(255,255,255)" stroke-width="2.5" fill="none"/></g>`:'');
- return `${halo}${backHair}${legs}${arm(-1)}${body}${feet}${arm(1)}${props}<g class="rig-head">${ears}${face}${wrinkle}${hair}${crown}${eye(-1,id,m,13,-80,.9)}${eye(1,id,m,13,-80,.9)}${glasses}${brows(m,-95)}${beard}${mouth(m,mouthY,.8)}</g>`;
+ return `${halo}${backHair}${legs}${arm(-1)}${body}${feet}${arm(1)}${props}<g class="rig-head">${ears}${face}${wrinkle}${hair}${hat}${crown}${eye(-1,id,m,13,-80,.9)}${eye(1,id,m,13,-80,.9)}${glasses}${brows(m,-95)}${beard}${mouth(m,mouthY,.8)}</g>`;
 }
 function toad(id,p,m){
  const f=`url(#${id}-fur)`;

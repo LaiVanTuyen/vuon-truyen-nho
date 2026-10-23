@@ -65,7 +65,7 @@ const sunFace=(x=770,y=83,mood='happy')=>`<g transform="translate(${x} ${y})"><g
 const windFace=(x,y,blow=false)=>`<g transform="translate(${x} ${y})"><g class="${blow?'wind-puff':'cloud-bob'}"><path d="M-70 20q-30-4-26-30 4-24 32-22 6-30 40-30 30 0 40 24 30-4 38 22 6 30-26 36Z" fill="#f4f8ff" stroke="#b9c8dc" stroke-width="4"/><circle cx="-12" cy="-6" r="5" fill="#3a4a6a"/><circle cx="22" cy="-6" r="5" fill="#3a4a6a"/>${blow?'<ellipse cx="44" cy="12" rx="9" ry="7" fill="#3a4a6a"/><circle cx="-26" cy="8" r="9" fill="#cfe0f6"/><circle cx="58" cy="2" r="9" fill="#cfe0f6"/>':'<path d="M-4 12q10 8 20 0" stroke="#3a4a6a" stroke-width="4" fill="none" stroke-linecap="round"/>'}</g>${blow?'<g class="wind-gusts" stroke="#ffffff" stroke-width="6" fill="none" stroke-linecap="round"><path d="M70 0h120q30 0 20-24M70 24h170q34 0 22 26M60 48h90"/></g>':''}</g>`;
 const coat=(x,y,r=0)=>`<g transform="translate(${x} ${y}) rotate(${r})"><path d="M-30 0h60l10 80H-40Z" fill="#a5643a" stroke="#6a3a1e" stroke-width="3"/><path d="M-30 0-46 50-36 54-24 14M30 0l16 50-10 4-12-40" fill="#a5643a" stroke="#6a3a1e" stroke-width="3"/><path d="M-12 0 0 20 12 0" fill="#7a4626"/><path d="M0 20v56" stroke="#6a3a1e" stroke-width="2"/></g>`;
 const darkCloud=(x=770,y=86)=>`<g transform="translate(${x} ${y})"><path d="M-90 30q-36-4-30-36 6-30 40-26 10-36 50-34 36 2 46 30 36-6 46 26 6 40-34 40Z" fill="#9aa6b8" stroke="#7a869a" stroke-width="3"/></g>`;
-window.renderMovieScene=function(s,i,draw){
+function stageClassic(s,i,draw){
 let world='garden',night=false,cast='',props='',say='',camera='camera-drift',event='',front='',top=false;const A=(...v)=>actor(draw,...v);const B=(...v)=>bubble(...v);
 const H={A,B,actor,bubble,tree,house,flag,blocks,apple,appleTree,basket,bush,rain,teaCup,log,bloom,ripples,cake,mouseHole,butterfly,soundRings,notes,nuts,leavesFall,snow,card,bouquet,countPop,mound,turnip,tint,fat,brown,grains,reeds,rainbow,colorDots,leafUmbrella,orange,areca,cheese,corn,mud,basin,E};
 if(window.VN_SCENES&&window.VN_SCENES[s.id]){const r=window.VN_SCENES[s.id](i,H)||{};world=r.world??world;night=r.night??night;cast=r.cast??'';props=r.props??'';say=r.say??'';camera=r.camera??camera;event=r.event??'';front=r.front??'';top=!!r.top}
@@ -219,6 +219,9 @@ case 'qua-tang-me':
  if(i===2){world='room';props=card(600,330,'apple-pop');cast=A('rabbit',400,340,1.25,'tidy');say=B(320,80,'Con yêu mẹ!', 'left',2)}
  if(i===3){world='room';props=bouquet(300,350)+card(780,300);cast=A('rabbit',370,338,1.2,'hug-child')+A('rabbit-mom',580,330,1.7,'hug-parent');say=B(300,70,'Chúc mừng sinh nhật mẹ!', 'left',1);event='hearts'}break;
 }
+return {world,night,cast,props,say,camera,event,front,top};
+}
+function compose(s,i,o){const {world,night,cast,props,say,camera,event,front,top}=o;
 let particles='';if(event){particles=`<g class="movie-particles ${event}">${Array.from({length:14},(_,n)=>`<text class="particle" style="--i:${n}" x="${170+(n*57)%650}" y="${60+(n*31)%150}" font-size="${16+n%3*6}" fill="${['#d3af66','#bf9078','#93ac77','#b0abc4'][n%4]}">${event==='hearts'?'♥':event==='stars'?'✦':event==='confetti'?'▪':'✧'}</text>`).join('')}</g>`}
 const svg=(cls,body)=>'<svg class="layer '+cls+'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" width="960" height="540" overflow="visible">'+body+'</svg>';
 const outdoor=world!=='room';
@@ -226,6 +229,22 @@ const ambient='<div class="layer ambient" aria-hidden="true">'+(outdoor&&!night?
 const propsOnTop=top||["su-tu-chuot","tho-trang"].includes(s.id);
 const propLayer=props?svg('props'+(propsOnTop?' on-top':''),props):'';
 return `<div class="movie-world scene" role="img" aria-label="Hoạt hình ${E(s.title)} — ${E(s.scenes[i][0])}"><div class="movie-camera cam ${camera}">${svg('bg','<defs><linearGradient id="movieShade" x2="0" y2="1"><stop stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#334a34" stop-opacity=".12"/></linearGradient></defs>'+background(world,night)+'<rect width="960" height="540" fill="url(#movieShade)"/>')}${ambient}${propLayer}<div class="layer cast">${cast}</div>${front?svg('props front',front):''}</div>${svg('fx',say+particles+'<g class="foreground-leaves" fill="#69895c" opacity=".55"><path d="M0 540V430q70 18 40 110m920 0V420q-65 15-30 120"/></g>')}</div><div class="movie-caption"><span>${E(s.scenes[i][0])}</span></div>`;
+}
+const helpers=draw=>{const A=(...v)=>actor(draw,...v);const B=(...v)=>bubble(...v);return {A,B,actor,bubble,tree,house,flag,blocks,apple,appleTree,basket,bush,rain,teaCup,log,bloom,ripples,cake,mouseHole,butterfly,soundRings,notes,nuts,leavesFall,snow,card,bouquet,countPop,mound,turnip,tint,fat,brown,grains,reeds,rainbow,colorDots,leafUmbrella,orange,areca,cheese,corn,mud,basin,honey,candy,germ,brushCup,toothShine,road,car,sunFace,windFace,coat,darkCloud,E}};
+// Dàn cảnh khai báo trong stage.js (window.STAGE[id][i]); không có thì dùng dàn cảnh cũ.
+// d.old: lấy dàn cảnh cũ số k làm nền; d.w nền; d.n đêm; d.c nhân vật [[loại,x,y,cỡ,động tác],...]; d.p đạo cụ; d.f đạo cụ phía trước; d.e hiệu ứng.
+window.renderMovieScene=function(s,i,draw){
+ const st=window.STAGE&&window.STAGE[s.id]&&window.STAGE[s.id][i];
+ if(!st)return compose(s,i,stageClassic(s,i,draw));
+ const H=helpers(draw),d=typeof st==='function'?st(H):st;
+ const o=d.old!==undefined?{...stageClassic(s,d.old,draw),say:''}:{world:'garden',night:false,cast:'',props:'',say:'',camera:'camera-drift',event:'',front:'',top:false};
+ const val=v=>typeof v==='function'?v(H):v;
+ if(d.w)o.world=d.w;if(d.n!==undefined)o.night=d.n;
+ if(d.c){const cs=d.c.map(a=>Array.isArray(a)?H.A(...a):val(a)).join('');o.cast=d.addCast?o.cast+cs:cs}
+ if(d.p!==undefined)o.props=(d.keepProps?o.props:'')+val(d.p);
+ if(d.f!==undefined)o.front=val(d.f);
+ if(d.e!==undefined)o.event=d.e;if(d.cam)o.camera=d.cam;if(d.top)o.top=true;if(d.say)o.say=val(d.say);
+ return compose(s,i,o);
 };
 })();
 

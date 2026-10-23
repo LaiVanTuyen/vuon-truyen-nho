@@ -29,7 +29,7 @@ const riceTray = (x, y) => T(x, y, 1, `<ellipse rx="70" ry="18" fill="#c99a5a" s
 const fancyDish = (x, y) => T(x, y, 1, '<ellipse rx="44" ry="11" fill="#f2c64a" stroke="#b8862a" stroke-width="3"/><path d="M-30-6q10-30 30-24 20-6 30 24Z" fill="#e8743a"/><path d="M-10-24q10-14 22-4" stroke="#3fae4a" stroke-width="4" fill="none"/>');
 const table = (x, y, w = 220) => `<g transform="translate(${x} ${y})"><rect x="${-w / 2}" y="-12" width="${w}" height="14" rx="5" fill="#a8743e" stroke="#6a4626" stroke-width="3"/><path d="M${-w / 2 + 16} 2v60M${w / 2 - 16} 2v60" stroke="#7a5230" stroke-width="10"/></g>`;
 const starFruit = (x, y) => `<g transform="translate(${x} ${y})"><path d="M0-16 6-6 16-4 8 4 10 16 0 10-10 16-8 4-16-4-6-6Z" fill="#f6d33a" stroke="#c99a10" stroke-width="2"/></g>`;
-const kheTree = (x, y, k = 1) => H0.tree(x, y, k * 1.3) + [[-60, -250], [-20, -280], [30, -240], [70, -270], [-40, -205], [50, -200], [0, -225]].map(([dx, dy]) => starFruit(x + dx * k, y + dy * k)).join('');
+const kheTree = (x, y, k = 1, H = H0) => H.tree(x, y, k * 1.3) + [[-60, -250], [-20, -280], [30, -240], [70, -270], [-40, -205], [50, -200], [0, -225]].map(([dx, dy]) => starFruit(x + dx * k, y + dy * k)).join('');
 const goldBag = (x, y, k = 1, cls = '') => T(x, y, k, '<path d="M-26 0q-10-40 10-52h32q20 12 10 52Z" fill="#c99a5a" stroke="#7a5a2e" stroke-width="3"/><path d="M-14-52q14 10 28 0" stroke="#7a5a2e" stroke-width="4" fill="none"/><circle cx="-4" cy="-20" r="7" fill="#ffd23f" stroke="#c99a10" stroke-width="2"/>', cls);
 const goldPile = (x, y) => T(x, y, 1, Array.from({length: 14}, (_, n) => `<ellipse cx="${(n * 29) % 120 - 60}" cy="${-((n * 11) % 36)}" rx="13" ry="7" fill="${n % 2 ? '#ffd23f' : '#f2b81a'}" stroke="#b8860a" stroke-width="2"/>`).join('') + '<g class="twinkle" fill="#fff6b0"><path d="M20-60l4 10 10 4-10 4-4 10-4-10-10-4 10-4Z"/></g>');
 const goldFalling = (x, y) => Array.from({length: 6}, (_, n) => `<g class="gold-fall" style="--i:${n}"><ellipse cx="${x + (n % 3) * 26 - 26}" cy="${y + n * 8}" rx="10" ry="6" fill="#ffd23f" stroke="#b8860a" stroke-width="2"/></g>`).join('');
@@ -140,5 +140,6 @@ const S = {
   return {world: 'garden', props: bigBranch(120) + '<path d="M160 260Q260 200 340 120" stroke="#8a6a4a" stroke-width="24" fill="none" stroke-linecap="round"/>' + flowerTop(352, 110), cast: A('ant', 320, 128, .7, 'celebrate') + A('ant', 560, 306, .55, 'walk-on'), say: B(380, 60, 'Tới nơi rồi!', 'left', 1), event: 'sparkles'};
 }
 };
+window.VN_PROPS = {T, bambooStalk, bambooPile, bambooGrove, plowTool, melon, melonCut, vines, boat, seeds, bed, bowl, banhChung, banhDay, laDong, riceTray, fancyDish, table, starFruit, kheTree, goldBag, goldPile, goldFalling, island, drum, jar, bolt, banyan, starLantern, bell, gate, satchel, veggies, coins, umbrellaLeaf, curvyPath, bigBranch, peachBranch, flowerTop};
 window.VN_SCENES = new Proxy(S, {get(t, k) { const f = t[k]; return f ? (i, H) => { H0 = H; return f(i, H); } : undefined; }});
 })();

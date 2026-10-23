@@ -11,12 +11,14 @@ const SPEAKERS = [
  ['Đất Mẹ','mother',''],['Mẹ','mother',['rabbit-mom','bear-mom','pig-mom','duck-mom','hen-mom','human-lady']],['mẹ','mother',['rabbit-mom','bear-mom','pig-mom','duck-mom','hen-mom','human-lady']],
  ['Cô Bồ Câu','mother','bird'],['Bồ Câu','mother','bird'],
  ['Bà Tiên','lady','human-fairy'],['Vợ Cuội','lady','human-lady'],['vợ Cuội','lady','human-lady'],['Vợ An Tiêm','lady','human-lady'],
+ ['Cô con gái','lady','human-lady'],['Chị Hằng','lady','human-fairy'],['Chuột Mẹ','mother','mouse-mom'],['Chú chim','grandma','sparrow'],
  ['bà','grandma','human-grandma'],['Bà','grandma','human-grandma'],
  // Ông, bác, người lớn
  ['Bác Cú Mèo','oldman','owl'],['Bác Gấu','uncle','bear'],['Bác thợ săn','man','human-man'],['Bác đi đường','man',['human-coat','human-man']],['bác đi đường','man',['human-coat','human-man']],
  ['Bác','uncle','bear'],['Sư Tử','big','lion'],['Ông','oldman','human-elder'],['ông','oldman','human-elder'],
  ['Người cha','oldman','human-elder'],['người cha','oldman','human-elder'],['Cha','oldman','human-elder'],
- ['ông Bụt','oldman','human-but'],['Bụt','oldman','human-but'],['vị thần','oldman','human-but'],
+ ['ông Bụt','oldman','human-but'],['Ông Bụt','oldman','human-but'],['Bụt','oldman','human-but'],['vị thần','oldman','human-but'],
+ ['kẻ xấu','rich','human-man2'],['Lang Cả','rich','human-man2'],['Lang Hai','rich','human-coat'],['Bé con','child',['human-boy','human-child']],['Vi khuẩn','sly',''],['vi khuẩn','sly',''],['vịt anh','child','duck'],['Chuột Lắt','tiny','mouse'],
  ['Phú ông','rich','human-rich'],['phú ông','rich','human-rich'],['Lão','rich','human-rich'],
  ['Vua Hùng','king','human-king'],['Vua','king','human-king'],['Trời','king','human-king'],['Thần Sét','big','human-thunder'],
  ['Anh Khoai','man','human-man'],['anh Khoai','man','human-man'],
@@ -35,7 +37,7 @@ const SPEAKERS = [
  ['Thỏ Con','child','rabbit'],['Gấu Con','child','bear'],['Heo Con','child','pig'],['Thỏ Trắng','child','rabbit'],['Thỏ Nâu','child','rabbit'],
  ['Heo Cả','child','pig'],['Heo Hai','child','pig'],['Heo Út','child','pig'],
  ['Thỏ','child','rabbit'],['Sóc','child','squirrel'],['Rùa','child','turtle'],['Gấu','child','bear'],['Heo','child','pig'],
- ['Tích Chu','child','human-child'],['Cậu','child','human-child'],['Cháu','child','human-child'],['cháu','child','human-child'],
+ ['Tích Chu','child',['human-boy','human-child']],['Cậu','child',['human-boy','human-child']],['Cháu','child',['human-child','human-boy']],['cháu','child',['human-child','human-boy']],
 ];
 
 function speakerOf(lead) {

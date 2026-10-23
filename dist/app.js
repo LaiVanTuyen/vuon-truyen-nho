@@ -129,13 +129,22 @@ function begin(){
 }
 function showSub(text,who=null){const el=$('#subtitle');if(!el)return;el.classList.remove('show');void el.offsetWidth;el.classList.toggle('dialogue',who!==null);el.innerHTML=who!==null?`${who?`<b class="who">${esc(who)}</b>`:""}<span>“${esc(text)}”</span>`:esc(text);el.classList.add('show')}
 // Lời thoại: nhân vật đang nói mấp máy miệng.
-function setTalking(c){all('#stage .actor.talking').forEach(x=>x.classList.remove('talking'));if(!c)return;
- const chars=c.chars?.length?c.chars:(window.SPEECH&&c.who?SPEECH.speakerOf(c.who).chars:[]);
- for(const t of chars){const list=all('#stage .actor[data-c="'+t+'"]');const a=list.find(x=>x.querySelector('.rig-mouth'))||list[0];if(a){a.classList.add('talking');return}}}
+function actorFor(c){const chars=c.chars?.length?c.chars:(window.SPEECH&&c.who?SPEECH.speakerOf(c.who).chars:[]);
+ for(const t of chars){const list=all('#stage .actor[data-c="'+t+'"]');const a=list.find(x=>x.querySelector('.rig-mouth'))||list[0];if(a)return a}return null}
+function setTalking(c){all('#stage .actor.talking').forEach(x=>x.classList.remove('talking'));if(!c)return;actorFor(c)?.classList.add('talking')}
+// Bong bóng thoại hiện trên đầu nhân vật đang nói, đổi theo từng câu.
+function liveBubble(c){const sc=$('#stage .scene');if(!sc)return;let b=sc.querySelector('.live-bubble');
+ if(!c||!c.say){b?.classList.remove('show');return}
+ if(!b){b=document.createElement('div');b.className='live-bubble';b.setAttribute('aria-hidden','true');sc.appendChild(b)}
+ let x=480,y=150;const a=actorFor(c);
+ if(a){const m=a.style.transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)\s*scale\(([\d.]+)\)/);const w=a.closest('.wrap');if(m){const k=+m[3];x=+m[1];y=+m[2]-(a.dataset.c.startsWith('human')?178:160)*k;if(w&&/translate\(([-\d.]+)px/.test(w.style.transform||'')){/* nhóm có dịch chuyển riêng: giữ vị trí gốc */}}}
+ const left=x<300;b.classList.toggle('tail-left',left);b.classList.toggle('tail-right',x>660);
+ b.style.left=Math.max(150,Math.min(810,x))+'px';b.style.top=Math.max(96,y)+'px';
+ b.innerHTML=(c.who?`<b>${esc(c.who)}</b>`:'')+esc(c.t);b.classList.remove('show');void b.offsetWidth;b.classList.add('show')}
 function runScene(from=0){
  if(!playing)return;const list=segments(story,scene);seg=from;
  if(seg>=list.length){waitTimer=setTimeout(()=>{if(!playing)return;scene<story.scenes.length-1?goScene(scene+1,true):ending()},900);return}
- const c=list[seg];showSub(c.t,c.say?(c.who||''):null);setTalking(c.say&&state.voice?c:null);prefetch(list[seg+1]||segments(story,Math.min(scene+1,story.scenes.length-1))[0]);segStart=performance.now();segDur=(c.d||wordsTime(c.t)/1000)*1000;tick();
+ const c=list[seg];showSub(c.t,c.say?(c.who||''):null);setTalking(c.say&&state.voice?c:null);liveBubble(c);prefetch(list[seg+1]||segments(story,Math.min(scene+1,story.scenes.length-1))[0]);segStart=performance.now();segDur=(c.d||wordsTime(c.t)/1000)*1000;tick();
  say(c,c.t,()=>{setTalking(null);runScene(seg+1)});
 }
 function goScene(i,auto=false){
