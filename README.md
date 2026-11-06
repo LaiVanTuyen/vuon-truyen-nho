@@ -8,14 +8,28 @@ Chạy `node preview.cjs` rồi mở http://127.0.0.1:4173. Trên Windows có th
 
 ## Nội dung
 
-40 truyện, 160 cảnh hoạt hình, 120 câu hỏi, chia theo 11 thể loại: Ngụ ngôn, Tình bạn, Cổ tích, Trước giờ ngủ, Kỹ năng sống, Thói quen tốt, Học đếm & màu sắc, Đồng dao & thơ, Thiên nhiên, Gia đình và **Dân gian Việt Nam** (Cây Tre Trăm Đốt, Sự Tích Dưa Hấu, Tích Chu, Bánh Chưng Bánh Dày, Cây Khế, Cóc Kiện Trời, Chú Cuội Cung Trăng, Đeo Nhạc Cho Mèo, Mèo Dạy Hổ). Đồng dao dân gian: Con Mèo Mà Trèo Cây Cau, Dung Dăng Dung Dẻ, Bà Còng Đi Chợ, Con Kiến Mà Leo Cành Đa. Bài thơ "Đàn Gà Con" là bài thơ mới viết (không phải bài thơ cùng tên của Phạm Hổ). Phần lớn dành cho bé mầm non (3–5 tuổi). Lời kể được biên soạn mới; không lấy lại hình hoặc âm thanh từ website tham khảo.
+40 truyện, 262 cảnh hoạt hình, 120 câu hỏi, chia theo 11 thể loại: Ngụ ngôn, Tình bạn, Cổ tích, Trước giờ ngủ, Kỹ năng sống, Thói quen tốt, Học đếm & màu sắc, Đồng dao & thơ, Thiên nhiên, Gia đình và **Dân gian Việt Nam** (Cây Tre Trăm Đốt, Sự Tích Dưa Hấu, Tích Chu, Bánh Chưng Bánh Dày, Cây Khế, Cóc Kiện Trời, Chú Cuội Cung Trăng, Đeo Nhạc Cho Mèo, Mèo Dạy Hổ). Đồng dao dân gian: Con Mèo Mà Trèo Cây Cau, Dung Dăng Dung Dẻ, Bà Còng Đi Chợ, Con Kiến Mà Leo Cành Đa. Bài thơ "Đàn Gà Con" là bài thơ mới viết (không phải bài thơ cùng tên của Phạm Hổ). Phần lớn dành cho bé mầm non (3–5 tuổi). Lời kể được biên soạn mới; không lấy lại hình hoặc âm thanh từ website tham khảo.
 
 ### Sửa và thêm truyện
 
 - Nội dung nằm trong `dist/data.js`. Lời thoại viết theo mẫu `Thỏ Mẹ dặn: “Con chơi gần nhà thôi nhé!”`: tên người nói đứng đầu lời dẫn, lời nhân vật đặt trong ngoặc kép “ ”. Tên người nói, giọng đọc và nhân vật mấp máy miệng khai báo trong `dist/speech.js`.
-- Dàn cảnh truyện cũ ở `dist/animation.js` (một `case` theo id truyện); truyện dân gian Việt Nam ở `dist/animation-vn.js` (một hàm theo id truyện). Chuyển động mới ở `dist/vn.css`.
+- Dàn cảnh của từng cảnh ở `dist/stage.js` (`window.STAGE[id][i]`). Một cảnh có thể dùng lại dàn cảnh nền 4 cảnh cũ: truyện cũ ở `dist/animation.js` (một `case` theo id truyện), truyện dân gian Việt Nam ở `dist/animation-vn.js` (một hàm theo id truyện). Chuyển động mới ở `dist/vn.css`. Cảnh không tự chọn máy quay thì trang tự chọn: cảnh đầu quay toàn cảnh, cảnh chạy/bay thì máy đuổi theo, cảnh cuối thì lại gần.
 - Sửa lời xong thì tạo lại giọng kể (xem mục Giọng kể). Khi file giọng chưa khớp lời mới, trang tự chạy phụ đề theo thời gian thay vì đọc lời cũ.
 - Câu hỏi được tráo thứ tự đáp án mỗi lần hỏi.
+- Kiểm tra nội dung trước khi tạo giọng (không cần mạng): `node tools/kiem-tra-truyen.mjs [id-truyện]`. Lệnh báo lỗi ngoặc kép, người nói không có trong bảng, nhân vật chưa vẽ, cảnh chưa có dàn cảnh, động tác chưa có CSS, câu hỏi sai đáp án và giọng kể chưa khớp lời.
+
+### Bộ skill cho Claude Code
+
+Thư mục `.claude/skills/` chứa quy trình làm truyện, dùng bằng lệnh `/tên-skill` trong Claude Code:
+
+| Skill | Việc |
+|---|---|
+| `/tao-truyen` | Quy trình đầy đủ từ ý tưởng tới khi lên web; điều phối các skill dưới. Mỗi truyện có hồ sơ `ke-hoach/<id>.md`. |
+| `/viet-truyen` | Lời kể, lời thoại, bài học, câu hỏi: khung 4 hồi trên 6–8 cảnh, viết cho tai nghe, chuyển thể truyện dân gian. |
+| `/tao-nhan-vat` | Hồ sơ nhân vật và vẽ nhân vật SVG mới trong `characters.js`, giữ nhân vật nhất quán. |
+| `/dan-canh` | Bảng phân cảnh và dàn cảnh trong `stage.js`: bối cảnh, máy quay, động tác, đạo cụ, hiệu ứng. |
+| `/giong-ke` | Gán giọng theo vai, viết để giọng đọc truyền cảm, tạo lại MP3, nhạc và tiếng động. |
+| `/duyet-truyen` | Kiểm tra tự động, chấm độ sinh động, an toàn cho trẻ, danh sách cần xem và nghe. |
 
 ## Cấu trúc
 

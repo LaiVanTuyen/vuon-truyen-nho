@@ -91,7 +91,7 @@ const S = {
 'coc-kien-troi'(i, H) {
   const {A, B} = H;
   if (i === 0) return {world: 'dry', cast: A('toad', 270, 420, 1.25, 'argue') + A('crab', 420, 425, .85, 'idle') + A('bear', 560, 412, 1.1, 'idle') + A('fox', 700, 415, 1, 'idle') + A('bee', 810, 320, .9, 'flutter'), say: B(120, 100, 'Ộp ộp! Lên kiện ông Trời!', 'left', 1)};
-  if (i === 1) return {world: 'heaven', props: jar(800, 470) + drum(470, 410), cast: A('toad', 340, 440, 1.2, 'hammer') + A('bee', 640, 200, .8, 'flutter') + A('crab', 800, 395, .55, 'idle'), say: B(170, 120, 'Tùng! Tùng! Tùng!', 'left', 1) + B(560, 80, 'Ai dám làm ồn ở đây?', 'left', 3)};
+  if (i === 1) return {world: 'heaven', props: jar(800, 470) + drum(470, 410), cast: A('toad', 340, 440, 1.2, 'hammer') + A('human-king', 650, 430, 1.25, 'huff') + A('bee', 560, 190, .7, 'flutter') + A('crab', 820, 395, .55, 'idle'), say: B(170, 120, 'Tùng! Tùng! Tùng!', 'left', 1) + B(560, 70, 'Ai dám làm ồn ở đây?', 'left', 3)};
   if (i === 2) return {world: 'heaven', props: jar(560, 480) + bolt(700, 220, 1) + bolt(220, 200, .8), cast: A('human-thunder', 520, 440, 1.3, 'tremble') + A('bee', 600, 230, .8, 'flutter') + A('crab', 600, 470, .6, 'strain') + A('fox', 200, 440, 1.05, 'boast') + A('bear', 820, 432, 1.15, 'boast'), say: B(260, 80, 'Ối ối, tha cho ta!', 'left', 1)};
   return {world: 'village', props: H.rain(), cast: A('toad', 300, 440, 1.25, 'celebrate') + A('crab', 450, 448, .8, 'celebrate') + A('bear', 600, 438, 1.05, 'celebrate') + A('fox', 740, 440, .95, 'celebrate') + A('bee', 520, 300, .8, 'flutter'), say: B(170, 100, 'Mưa rồi! Mưa rồi!', 'left', 1), event: 'sparkles'};
 },

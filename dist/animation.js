@@ -221,7 +221,16 @@ case 'qua-tang-me':
 }
 return {world,night,cast,props,say,camera,event,front,top};
 }
-function compose(s,i,o){const {world,night,cast,props,say,camera,event,front,top}=o;
+function compose(s,i,o){const {world,night,cast,props,say,event,front,top}=o;let {camera}=o;
+// Cảnh không tự chọn máy quay thì chọn theo nhịp truyện: mở toàn cảnh, cảnh chạy/bay thì đuổi theo,
+// cảnh kết thì lại gần (chỉ khi mọi nhân vật đứng gần giữa, để phóng to không cắt mất ai).
+if(camera==='camera-drift'){
+ const xs=[...cast.matchAll(/translate\((-?[\d.]+)px/g)].map(m=>+m[1]);
+ const fastMove=/class="motion (dash|run|race-away|run-to-safe|fox-exit|fly-in|fly-away|fly-safe|fly-rescue|fly-to-jug|leap|walk-on)"/.test(cast);
+ if(i===0)camera='camera-wide';
+ else if(fastMove)camera='camera-follow';
+ else if(i===s.scenes.length-1&&xs.length&&Math.min(...xs)>=250&&Math.max(...xs)<=710)camera='camera-close';
+}
 let particles='';if(event){particles=`<g class="movie-particles ${event}">${Array.from({length:14},(_,n)=>`<text class="particle" style="--i:${n}" x="${170+(n*57)%650}" y="${60+(n*31)%150}" font-size="${16+n%3*6}" fill="${['#d3af66','#bf9078','#93ac77','#b0abc4'][n%4]}">${event==='hearts'?'♥':event==='stars'?'✦':event==='confetti'?'▪':'✧'}</text>`).join('')}</g>`}
 const svg=(cls,body)=>'<svg class="layer '+cls+'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" width="960" height="540" overflow="visible">'+body+'</svg>';
 const outdoor=world!=='room';

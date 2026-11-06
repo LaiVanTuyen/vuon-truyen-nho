@@ -19,6 +19,7 @@ const SPEAKERS = [
  ['Người cha','oldman','human-elder'],['người cha','oldman','human-elder'],['Cha','oldman','human-elder'],
  ['ông Bụt','oldman','human-but'],['Ông Bụt','oldman','human-but'],['Bụt','oldman','human-but'],['vị thần','oldman','human-but'],
  ['kẻ xấu','rich','human-man2'],['Lang Cả','rich','human-man2'],['Lang Hai','rich','human-coat'],['Bé con','child',['human-boy','human-child']],['Vi khuẩn','sly',''],['vi khuẩn','sly',''],['vịt anh','child','duck'],['Chuột Lắt','tiny','mouse'],
+ ['Các quan','man',''],['các quan','man',''],['Các lang','man',['human-man2','human-coat']],['các lang','man',['human-man2','human-coat']],
  ['Phú ông','rich','human-rich'],['phú ông','rich','human-rich'],['Lão','rich','human-rich'],
  ['Vua Hùng','king','human-king'],['Vua','king','human-king'],['Trời','king','human-king'],['Thần Sét','big','human-thunder'],
  ['Anh Khoai','man','human-man'],['anh Khoai','man','human-man'],
